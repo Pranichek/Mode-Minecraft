@@ -7,6 +7,8 @@ import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.crimsonmoon.world.ModWorldGen;
+
 public class CrimsonMoon implements ModInitializer {
 	public static final String MOD_ID = "crimsonmoon";
 
@@ -22,6 +24,7 @@ public class CrimsonMoon implements ModInitializer {
 		// Proceed with mild caution.
 		ModItems.registerModItems();
 		ModBlocks.registerModBlocks();
+		ModWorldGen.generateModWorldGen();
 	}
 
 	public static Identifier id(String path) {
