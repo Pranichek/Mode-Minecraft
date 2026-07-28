@@ -17,7 +17,8 @@
 	"entrypoints": {
 		"main": [
 			"com.crimsonmoon.CrimsonMoon"
-		]
+		],
+		"client": [ "com.crimsonmoon.CrimsonMoonClient" ]
 	},
 	"mixins": [
 		"crimsonmoon.mixins.json"

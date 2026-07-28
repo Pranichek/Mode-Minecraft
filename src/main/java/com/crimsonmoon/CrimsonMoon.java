@@ -24,6 +24,7 @@ public class CrimsonMoon implements ModInitializer {
 		// Proceed with mild caution.
 		ModItems.registerModItems();
 		ModBlocks.registerModBlocks();
+		ModEntities.registerModEntities();
 		ModWorldGen.generateModWorldGen();
 	}
 
