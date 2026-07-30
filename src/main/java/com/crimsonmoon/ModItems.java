@@ -14,30 +14,35 @@ public class ModItems {
         new Item(new Item.Settings())
     );
 
+    public static final Item BLOOD_INGOT = registerItem(
+        "blood_ingot",
+        new Item(new Item.Settings())
+    );
+ 
     public static final Item BLOOD_HELMET = registerItem(
         "blood_helmet",
-        new CrimsonArmorItem(ModArmorMaterials.CRIMSON, 
+        new CrimsonArmorItem(ModArmorMaterials.BLOOD_HELMET, 
         ArmorItem.Type.HELMET, 
         new Item.Settings())
     );
 
     public static final Item BLOOD_CHESTPLATE = registerItem(
         "blood_chestplate",
-        new CrimsonArmorItem(ModArmorMaterials.CRIMSON, 
+        new CrimsonArmorItem(ModArmorMaterials.BLOOD_CHESTPLATE, 
         ArmorItem.Type.CHESTPLATE, 
         new Item.Settings())
     );
 
     public static final Item BLOOD_LEGGINGS = registerItem(
         "blood_leggings",
-        new CrimsonArmorItem(ModArmorMaterials.CRIMSON, 
+        new CrimsonArmorItem(ModArmorMaterials.BLOOD_LEGGINGS, 
         ArmorItem.Type.LEGGINGS, 
         new Item.Settings())
     );
 
     public static final Item BLOOD_BOOTS = registerItem(
         "blood_boots",
-        new CrimsonArmorItem(ModArmorMaterials.CRIMSON, 
+        new CrimsonArmorItem(ModArmorMaterials.BLOOD_BOOTS, 
         ArmorItem.Type.BOOTS, 
         new Item.Settings())
     );
@@ -54,6 +59,7 @@ public class ModItems {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS)
             .register(entries -> {
                 entries.add(BLOOD_STONE);
+                entries.add(BLOOD_INGOT);
             });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT)
@@ -64,5 +70,4 @@ public class ModItems {
                 entries.add(BLOOD_BOOTS);
             });
     }
-
 }

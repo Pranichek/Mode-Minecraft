@@ -8,7 +8,16 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 
 public enum ModArmorMaterials implements ArmorMaterial {
-    CRIMSON;
+    BLOOD_HELMET("blood_helmet"),
+    BLOOD_CHESTPLATE("blood_chestplate"),
+    BLOOD_LEGGINGS("blood_leggings"),
+    BLOOD_BOOTS("blood_boots");
+
+    private final String name;
+
+    ModArmorMaterials(String name) {
+        this.name = name;
+    }
 
     @Override
     public int getDurability(Type type) {
@@ -32,7 +41,7 @@ public enum ModArmorMaterials implements ArmorMaterial {
 
     @Override
     public String getName() {
-        return "crimsonmoon:crimson";
+        return "crimsonmoon:" + this.name;
     }
 
     @Override
@@ -51,7 +60,7 @@ public enum ModArmorMaterials implements ArmorMaterial {
 
     @Override
     public Ingredient getRepairIngredient() {
-        return Ingredient.ofItems(ModItems.BLOOD_STONE);
+        return Ingredient.ofItems(ModItems.BLOOD_INGOT);
     }
 
     @Override
@@ -59,4 +68,3 @@ public enum ModArmorMaterials implements ArmorMaterial {
        return 1.0f;
     }
 }
-

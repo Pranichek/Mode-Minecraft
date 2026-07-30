@@ -1,9 +1,9 @@
 {
-    "item.crimsonmoon:blood_stone": "Blood stone",
-    "block.crimsonmoon:crimson_ore": "Crimson ore",
-    "item.crimsonmoon:blood_helmet": "Blood helmet",
-    "item.crimsonmoon:blood_chestplate": "Blood chestplate",
-    "item.crimsonmoon:blood_leggings": "Blood leggings",
-    "item.crimsonmoon:blood_boots": "Blood boots"
-
+    "item.crimsonmoon.blood_stone": "Blood stone",
+    "block.crimsonmoon.crimson_ore": "Crimson ore",
+    "item.crimsonmoon.blood_helmet": "Blood helmet",
+    "item.crimsonmoon.blood_chestplate": "Blood chestplate",
+    "item.crimsonmoon.blood_leggings": "Blood leggings",
+    "item.crimsonmoon.blood_boots": "Blood boots",
+    "item.crimsonmoon.blood_ingot": "Blood ingot"
 }

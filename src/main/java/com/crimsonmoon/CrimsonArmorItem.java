@@ -9,7 +9,6 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.world.World;
 
-
 public class CrimsonArmorItem extends ArmorItem{
     public CrimsonArmorItem(
         ArmorMaterial material,
@@ -53,16 +52,18 @@ public class CrimsonArmorItem extends ArmorItem{
     }
     
     private boolean checkArmor(PlayerEntity player){
-        for (int i = 0; i < 4; i++){
-            ItemStack armorSlot = player.getInventory().getArmorStack(i);
-            
-            if (armorSlot.isEmpty() || !(armorSlot.getItem() instanceof ArmorItem armorItem) || armorItem.getMaterial() != ModArmorMaterials.CRIMSON){
-                return false;
-            } 
+        ItemStack boots = player.getInventory().getArmorStack(0);
+        ItemStack leggings = player.getInventory().getArmorStack(1);
+        ItemStack chestplate = player.getInventory().getArmorStack(2);
+        ItemStack helmet = player.getInventory().getArmorStack(3);
+        
+        if (boots.isEmpty() || leggings.isEmpty() || chestplate.isEmpty() || helmet.isEmpty()) {
+            return false;
         }
         
-        return true;
+        return boots.getItem() == ModItems.BLOOD_BOOTS &&
+               leggings.getItem() == ModItems.BLOOD_LEGGINGS &&
+               chestplate.getItem() == ModItems.BLOOD_CHESTPLATE &&
+               helmet.getItem() == ModItems.BLOOD_HELMET;
     }
-
-
 }

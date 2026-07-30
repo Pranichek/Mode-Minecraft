@@ -1,0 +1,37 @@
+{
+    "display": {
+        "icon": {
+        "item": "crimsonmoon:blood_stone"
+        },
+        "title": {
+        "text": "Кривава знахідка"
+        },
+        "description": {
+        "text": "Здобудьте свій перший камінь крові!"
+        },
+        "frame": "task",
+        "show_toast": true,
+        "announce_to_chat": true,
+        "hidden": false
+    },
+    "parent": "minecraft:story/mine_stone",
+    "criteria": {
+        "has_blood_stone": {
+        "trigger": "minecraft:inventory_changed",
+        "conditions": {
+            "items": [
+            {
+                "items": [
+                    "crimsonmoon:blood_stone"
+                ]
+            }
+            ]
+        }
+    }
+    },
+    "requirements": [
+        [
+        "has_blood_stone"
+        ]
+    ]
+}
