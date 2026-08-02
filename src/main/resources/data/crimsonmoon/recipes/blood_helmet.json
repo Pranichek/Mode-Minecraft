@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "MMM",
+    "M M"
+  ],
+    "key": {
+        "M": {
+            "item": "crimsonmoon:blood_ingot"
+        }
+    },
+    "result": {
+        "item": "crimsonmoon:blood_helmet",
+        "count": 1
+    }
+}
