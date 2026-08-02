@@ -1,17 +1,13 @@
 package com.crimsonmoon;
 
 import net.minecraft.item.ArmorMaterial;
-import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ArmorItem.Type;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 
 public enum ModArmorMaterials implements ArmorMaterial {
-    BLOOD_HELMET("blood_helmet"),
-    BLOOD_CHESTPLATE("blood_chestplate"),
-    BLOOD_LEGGINGS("blood_leggings"),
-    BLOOD_BOOTS("blood_boots");
+    CRIMSON("crimson");
 
     private final String name;
 
@@ -41,7 +37,7 @@ public enum ModArmorMaterials implements ArmorMaterial {
 
     @Override
     public String getName() {
-        return "crimsonmoon:" + this.name;
+        return CrimsonMoon.MOD_ID + ":" + this.name;
     }
 
     @Override
