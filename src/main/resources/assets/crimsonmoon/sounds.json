@@ -1,0 +1,8 @@
+{
+    "watcher_theme": {
+        "subtitle": "subtitle.crimsonmoon.watcher_theme",
+        "sounds": [
+        { "name": "crimsonmoon:watcher_theme", "stream": true }
+        ]
+    }
+}

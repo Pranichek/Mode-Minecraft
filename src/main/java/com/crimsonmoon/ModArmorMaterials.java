@@ -1,7 +1,6 @@
 package com.crimsonmoon;
 
 import net.minecraft.item.ArmorMaterial;
-import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ArmorItem.Type;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.sound.SoundEvent;

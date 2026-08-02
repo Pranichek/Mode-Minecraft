@@ -26,6 +26,8 @@ public class CrimsonMoon implements ModInitializer {
 		ModBlocks.registerModBlocks();
 		ModEntities.registerModEntities();
 		ModWorldGen.generateModWorldGen();
+		ModSounds.registerModSounds();
+		com.crimsonmoon.world.WatcherManager.register();
 	}
 
 	public static Identifier id(String path) {
