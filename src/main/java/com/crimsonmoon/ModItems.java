@@ -1,5 +1,10 @@
 package com.crimsonmoon;
 
+import net.minecraft.item.SwordItem;
+import net.minecraft.item.PickaxeItem;
+import net.minecraft.item.AxeItem;
+import net.minecraft.item.ShovelItem;
+import net.minecraft.item.HoeItem;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
@@ -9,6 +14,33 @@ import net.minecraft.item.ArmorItem;
 
 
 public class ModItems {
+    // інструменти
+    public static final Item BLOOD_SWORD = registerItem(
+        "blood_sword",
+        new SwordItem(ModToolMaterials.BLOOD, 3, -2.4f, new Item.Settings())
+    );
+
+    public static final Item BLOOD_PICKAXE = registerItem(
+        "blood_pickaxe",
+        new PickaxeItem(ModToolMaterials.BLOOD, 1, -2.8f, new Item.Settings())
+    );
+
+    public static final Item BLOOD_AXE = registerItem(
+        "blood_axe",
+        new AxeItem(ModToolMaterials.BLOOD, 5.0f, -3.0f, new Item.Settings())
+    );
+
+    public static final Item BLOOD_SHOVEL = registerItem(
+        "blood_shovel",
+        new ShovelItem(ModToolMaterials.BLOOD, 1.5f, -3.0f, new Item.Settings())
+    );
+
+    public static final Item BLOOD_HOE = registerItem(
+        "blood_hoe",
+        new HoeItem(ModToolMaterials.BLOOD, 3, 0.0f, new Item.Settings())
+    );
+
+    // руди
     public static final Item BLOOD_STONE = registerItem(
         "blood_stone",
         new Item(new Item.Settings())
@@ -18,7 +50,8 @@ public class ModItems {
         "blood_ingot",
         new Item(new Item.Settings())
     );
- 
+
+    // броня
     public static final Item BLOOD_HELMET = registerItem(
         "blood_helmet",
         new CrimsonArmorItem(ModArmorMaterials.CRIMSON, 
@@ -56,18 +89,6 @@ public class ModItems {
     }
     
     public static void registerModItems(){
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS)
-            .register(entries -> {
-                entries.add(BLOOD_STONE);
-                entries.add(BLOOD_INGOT);
-            });
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT)
-            .register(entries -> {
-                entries.add(BLOOD_HELMET);
-                entries.add(BLOOD_CHESTPLATE);
-                entries.add(BLOOD_LEGGINGS);
-                entries.add(BLOOD_BOOTS);
-            });
+        
     }
 }

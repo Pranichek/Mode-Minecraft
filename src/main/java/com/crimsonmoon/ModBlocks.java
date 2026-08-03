@@ -39,8 +39,6 @@ public class ModBlocks {
     }
 
     public static void registerModBlocks() {
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(entries -> {
-            entries.add(CRIMSON_ORE);
-        });
+
     }
 }

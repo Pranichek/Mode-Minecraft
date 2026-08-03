@@ -1,38 +1,41 @@
-package com.crimsonmoon;
+package com.crimsonmoon; 
 
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.text.Text;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup; 
+import net.minecraft.item.ItemGroup; 
+import net.minecraft.item.ItemStack; 
+import net.minecraft.registry.Registries; 
+import net.minecraft.registry.Registry; 
+import net.minecraft.text.Text; 
 import net.minecraft.util.Identifier;
 
-public class ModItemGroups {
+public class ModItemGroups{
     public static final ItemGroup CRIMSON_GROUP = Registry.register(
         Registries.ITEM_GROUP,
         new Identifier(CrimsonMoon.MOD_ID, "crimson_group"),
         FabricItemGroup.builder()
             .displayName(Text.translatable("itemgroup.crimson_group"))
-            .icon(() -> new ItemStack(ModItems.BLOOD_STONE)) // Іконка вкладки
+            .icon(() -> new ItemStack(ModItems.BLOOD_STONE))
             .entries((displayContext, entries) -> {
-                // Додаємо блоки
                 entries.add(ModBlocks.CRIMSON_ORE);
                 
-                // Додаємо ресурси
                 entries.add(ModItems.BLOOD_STONE);
                 entries.add(ModItems.BLOOD_INGOT);
                 
-                // Додаємо броню
                 entries.add(ModItems.BLOOD_HELMET);
                 entries.add(ModItems.BLOOD_CHESTPLATE);
                 entries.add(ModItems.BLOOD_LEGGINGS);
                 entries.add(ModItems.BLOOD_BOOTS);
+
+                entries.add(ModItems.BLOOD_SWORD);
+                entries.add(ModItems.BLOOD_PICKAXE);
+                entries.add(ModItems.BLOOD_AXE);
+                entries.add(ModItems.BLOOD_SHOVEL);
+                entries.add(ModItems.BLOOD_HOE);
             })
             .build()
     );
 
-    public static void registerItemGroups() {
-        
+    public static void registerItemGroups(){
+        // метод для ініціалізації
     }
 }
