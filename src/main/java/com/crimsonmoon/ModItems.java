@@ -4,6 +4,7 @@ import net.minecraft.item.SwordItem;
 import net.minecraft.item.PickaxeItem;
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.ShovelItem;
+import net.minecraft.item.SpawnEggItem;
 import net.minecraft.item.HoeItem;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
@@ -14,6 +15,12 @@ import net.minecraft.item.ArmorItem;
 
 
 public class ModItems {
+    // яйця
+    public static final Item BLOODWALKER_SPAWN_EGG = registerItem(
+        "bloodwalker_spawn_egg",
+        new SpawnEggItem(ModEntities.BLOODWALKER, 0x940000, 0x000000, new Item.Settings())
+    );
+    
     // інструменти
     public static final Item BLOOD_SWORD = registerItem(
         "blood_sword",

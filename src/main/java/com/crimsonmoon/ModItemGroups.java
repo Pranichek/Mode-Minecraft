@@ -16,6 +16,8 @@ public class ModItemGroups{
             .displayName(Text.translatable("itemgroup.crimson_group"))
             .icon(() -> new ItemStack(ModItems.BLOOD_STONE))
             .entries((displayContext, entries) -> {
+
+                entries.add(ModItems.BLOODWALKER_SPAWN_EGG);
                 entries.add(ModBlocks.CRIMSON_ORE);
                 
                 entries.add(ModItems.BLOOD_STONE);
