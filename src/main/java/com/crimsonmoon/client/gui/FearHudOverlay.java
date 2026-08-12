@@ -50,12 +50,19 @@ public class FearHudOverlay implements HudRenderCallback {
 
             float finalAlpha = fearProcentage * pulse * 0.8f;
             
+            context.getMatrices().push();
+            context.getMatrices().translate(screenWidth / 2.0f, screenHeight / 2.0f, 0);
+            float scale = 1.0f + (pulse * 0.1f * fearProcentage);
+            context.getMatrices().scale(scale, scale, 1.0f);
+            context.getMatrices().translate(-screenWidth / 2.0f, -screenHeight / 2.0f, 0);
 
             RenderSystem.enableBlend();
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, finalAlpha);
             context.drawTexture(FEAR_ICON, 0, 0, -90, 0.0f, 0.0f, screenWidth, screenHeight, screenWidth, screenHeight);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
             RenderSystem.disableBlend();
+            
+            context.getMatrices().pop();
             
             int barWidth = 120;
             int barHeight = 8;
