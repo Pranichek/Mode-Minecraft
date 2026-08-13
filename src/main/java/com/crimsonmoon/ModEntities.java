@@ -1,6 +1,7 @@
 package com.crimsonmoon;
 
 import com.crimsonmoon.entity.BloodwalkerEntity;
+import com.crimsonmoon.entity.NightmareEntity;
 import com.crimsonmoon.entity.WatcherEntity;
 
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -28,8 +29,17 @@ public class ModEntities {
         .build()
     );
 
+    public static final EntityType<NightmareEntity> NIGHTMARE = Registry.register(
+        Registries.ENTITY_TYPE,
+        CrimsonMoon.id("nightmare"),
+        FabricEntityTypeBuilder.create(SpawnGroup.MONSTER, NightmareEntity::new)
+            .dimensions(EntityDimensions.fixed(0.6f, 3.6f)) // высота 3 блока, как у эндермена
+            .build()
+    );
+
     public static void registerModEntities() {
         FabricDefaultAttributeRegistry.register(BLOODWALKER, BloodwalkerEntity.createBloodwalkerAttributes());
-        FabricDefaultAttributeRegistry.register(WATCHER, WatcherEntity.createWatcherAttributes()); 
+        FabricDefaultAttributeRegistry.register(WATCHER, WatcherEntity.createWatcherAttributes());
+        FabricDefaultAttributeRegistry.register(NIGHTMARE, NightmareEntity.createNightmareAttributes());
     }
 }

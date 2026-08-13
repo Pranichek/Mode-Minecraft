@@ -5,5 +5,10 @@
     "item.crimsonmoon.blood_chestplate": "Blood chestplate",
     "item.crimsonmoon.blood_leggings": "Blood leggings",
     "item.crimsonmoon.blood_boots": "Blood boots",
-    "item.crimsonmoon.blood_ingot": "Blood ingot"
+    "item.crimsonmoon.blood_ingot": "Blood ingot",
+    "entity.crimsonmoon.nightmare": "Nightmare",
+    "item.crimsonmoon.nightmare_spawn_egg": "Nightmare Spawn Egg",
+    "subtitle.crimsonmoon.nightmare_growl": "Nightmare growls",
+    "subtitle.crimsonmoon.nightmare_hurt": "Nightmare hurts",
+    "subtitle.crimsonmoon.nightmare_chase": "Nightmare roars"
 }

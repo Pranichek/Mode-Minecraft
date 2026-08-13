@@ -12,6 +12,12 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
+
+	// GeckoLib — используется для кастомной модели/анимаций сущности Nightmare
+	maven {
+		name = "GeckoLib"
+		url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+	}
 }
 
 dependencies {
@@ -22,6 +28,11 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// GeckoLib — модели/анимации для Nightmare
+	// include(...) зашивает GeckoLib прямо внутрь jar мода (Jar-in-Jar) —
+	// игроку не нужно ставить GeckoLib отдельно
+	include modImplementation("software.bernie.geckolib:geckolib-fabric-1.20.1:${project.geckolib_version}")
 }
 
 processResources {
@@ -70,5 +81,17 @@ publishing {
 		// Notice: This block does NOT have the same function as the block in the top level.
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
+		maven {
+			name = "Modrinth"
+			url = "https://api.modrinth.com/maven"
+		}
+	}
+}
+
+loom {
+	runs {
+		client {
+			property "geckolib.disable_examples", "true"
+		}
 	}
 }

@@ -8,11 +8,6 @@ import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.util.Identifier;
 
-/**
- * Пока нет своей модели — переиспользуем биповую модель зомби (гуманоид)
- * со своей текстурой. Если скин НЕ в формате классического 64x64 гуманоида —
- * скажи, сделаем кастомную модель под Blockbench-экспорт.
- */
 public class WatcherEntityRenderer extends MobEntityRenderer<WatcherEntity, BipedEntityModel<WatcherEntity>> {
 
     private static final Identifier TEXTURE =
