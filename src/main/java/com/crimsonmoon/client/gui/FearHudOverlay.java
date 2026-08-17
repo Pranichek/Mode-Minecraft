@@ -13,6 +13,9 @@ public class FearHudOverlay implements HudRenderCallback {
     private static final double DETECTION_RADIUS = 15.0;
     private static final Identifier FEAR_ICON = new Identifier("crimsonmoon", "textures/gui/fear_vignette.png");
 
+    public static float currentFear = 0.0f;
+    public static float currentPulse = 0.0f;
+
     @Override 
     public void onHudRender(DrawContext context, float tickDelta) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -24,37 +27,38 @@ public class FearHudOverlay implements HudRenderCallback {
         Box searchBox = client.player.getBoundingBox().expand(DETECTION_RADIUS);
         List<BloodwalkerEntity> nearbyBloodwalkers = client.world.getEntitiesByClass(BloodwalkerEntity.class, searchBox, entity -> true);
         
-        
-        if (!nearbyBloodwalkers.isEmpty()){
+        if (!nearbyBloodwalkers.isEmpty()) {
             double closestDistance = DETECTION_RADIUS;
             
-            for (BloodwalkerEntity mob : nearbyBloodwalkers){
+            for (BloodwalkerEntity mob : nearbyBloodwalkers) {
                 double distance = client.player.distanceTo(mob);
-                
-                if ( distance < closestDistance){
+                if (distance < closestDistance) {
                     closestDistance = distance;
-
                 }
-                
             }
+            
             float fearProcentage = (float) (1.0 - (closestDistance / DETECTION_RADIUS));
             
-            // шукаемо ширину екрану гравця
-
-            int screenWidth =  client.getWindow().getScaledWidth();
+            int screenWidth = client.getWindow().getScaledWidth();
             int screenHeight = client.getWindow().getScaledHeight();
 
             long currentTime = System.currentTimeMillis();
             float pulseSpeed = 300.0f - (fearProcentage * 200.0f);
-            float pulse = (float)((Math.sin(currentTime / pulseSpeed) +1.0) / 2.0);
+            float pulse = (float)((Math.sin(currentTime / pulseSpeed) + 1.0) / 2.0);
+
+            currentFear = fearProcentage;
+            currentPulse = pulse;
 
             float finalAlpha = fearProcentage * pulse * 0.8f;
             
             context.getMatrices().push();
-            context.getMatrices().translate(screenWidth / 2.0f, screenHeight / 2.0f, 0);
-            float scale = 1.0f + (pulse * 0.1f * fearProcentage);
-            context.getMatrices().scale(scale, scale, 1.0f);
-            context.getMatrices().translate(-screenWidth / 2.0f, -screenHeight / 2.0f, 0);
+            
+            if (fearProcentage > 0.7f) {
+                context.getMatrices().translate(screenWidth / 2.0f, screenHeight / 2.0f, 0);
+                float scale = 1.0f + (pulse * 0.15f); 
+                context.getMatrices().scale(scale, scale, 1.0f);
+                context.getMatrices().translate(-screenWidth / 2.0f, -screenHeight / 2.0f, 0);
+            }
 
             RenderSystem.enableBlend();
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, finalAlpha);
@@ -76,6 +80,9 @@ public class FearHudOverlay implements HudRenderCallback {
             String text = "Відчуття страху";
             int textWidth = client.textRenderer.getWidth(text);
             context.drawText(client.textRenderer, text, x + (barWidth - textWidth) / 2, y - 10, 0xFFAAAAAA, true);
+        } else {
+            currentFear = 0.0f;
+            currentPulse = 0.0f;
         }
     }
 }

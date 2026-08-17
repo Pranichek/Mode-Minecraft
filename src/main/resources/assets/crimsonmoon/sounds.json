@@ -1,0 +1,9 @@
+{
+  "heartbeat": {
+    "category": "ambient",
+    "subtitle": "subtitles.crimsonmoon.heartbeat",
+    "sounds": [
+      "crimsonmoon:heartbeat"
+    ]
+  }
+}
