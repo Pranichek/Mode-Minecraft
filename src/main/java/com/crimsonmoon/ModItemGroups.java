@@ -33,6 +33,7 @@ public class ModItemGroups{
                 entries.add(ModItems.BLOOD_AXE);
                 entries.add(ModItems.BLOOD_SHOVEL);
                 entries.add(ModItems.BLOOD_HOE);
+                entries.add(ModItems.BLOOD_SHIELD);
             })
             .build()
     );

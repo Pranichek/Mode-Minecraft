@@ -12,6 +12,8 @@ import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.item.ArmorItem;
+import com.crimsonmoon.item.CrimsonShieldItem;
+import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 
 
 public class ModItems {
@@ -85,6 +87,11 @@ public class ModItems {
         new CrimsonArmorItem(ModArmorMaterials.CRIMSON, 
         ArmorItem.Type.BOOTS, 
         new Item.Settings())
+    );
+
+    public static final Item BLOOD_SHIELD = registerItem(
+        "crimson_shield_item",
+        new CrimsonShieldItem(new FabricItemSettings().maxDamage(500))
     );
 
     private static Item registerItem(String name, Item item){
