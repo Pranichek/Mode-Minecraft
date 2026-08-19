@@ -3,6 +3,7 @@ package com.crimsonmoon;
 import com.crimsonmoon.client.render.BloodwalkerEntityRenderer;
 import com.crimsonmoon.client.render.WatcherEntityRenderer;
 import com.crimsonmoon.client.render.NightmareEntityRenderer;
+import com.crimsonmoon.client.render.ThorncallerEntityRenderer;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -15,5 +16,6 @@ public class CrimsonMoonClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.BLOODWALKER, BloodwalkerEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.WATCHER, WatcherEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.NIGHTMARE, NightmareEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.THORNCALLER, ThorncallerEntityRenderer::new);
     }
 }

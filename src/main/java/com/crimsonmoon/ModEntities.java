@@ -3,6 +3,7 @@ package com.crimsonmoon;
 import com.crimsonmoon.entity.BloodwalkerEntity;
 import com.crimsonmoon.entity.NightmareEntity;
 import com.crimsonmoon.entity.WatcherEntity;
+import com.crimsonmoon.entity.ThorncallerEntity;
 
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
@@ -37,9 +38,18 @@ public class ModEntities {
             .build()
     );
 
+    public static final EntityType<ThorncallerEntity> THORNCALLER = Registry.register(
+        Registries.ENTITY_TYPE,
+        CrimsonMoon.id("thorncaller"),
+        FabricEntityTypeBuilder.create(SpawnGroup.MONSTER, ThorncallerEntity::new)
+            .dimensions(EntityDimensions.fixed(0.6f, 1.95f))
+            .build()
+    );
+
     public static void registerModEntities() {
         FabricDefaultAttributeRegistry.register(BLOODWALKER, BloodwalkerEntity.createBloodwalkerAttributes());
         FabricDefaultAttributeRegistry.register(WATCHER, WatcherEntity.createWatcherAttributes());
         FabricDefaultAttributeRegistry.register(NIGHTMARE, NightmareEntity.createNightmareAttributes());
+        FabricDefaultAttributeRegistry.register(THORNCALLER, ThorncallerEntity.createThorncallerAttributes());
     }
 }

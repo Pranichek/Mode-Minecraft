@@ -3,7 +3,8 @@
 	"package": "com.crimsonmoon.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
-		"ExampleMixin"
+		"ExampleMixin",
+		"PlayerInventoryDropMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

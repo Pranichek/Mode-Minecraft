@@ -24,6 +24,11 @@ public class BloodwalkerEntity extends ZombieEntity {
             .add(EntityAttributes.GENERIC_ARMOR, 2.0);
     }
 
+    @Override
+    protected boolean burnsInDaylight() {
+        return false;
+    }
+
     // Поведение: атака в ближнем бою + обычное блуждание
     @Override
     protected void initGoals() {
