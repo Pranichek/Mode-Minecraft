@@ -6,9 +6,7 @@ import net.minecraft.item.AxeItem;
 import net.minecraft.item.ShovelItem;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.item.HoeItem;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.item.ArmorItem;
@@ -16,11 +14,23 @@ import com.crimsonmoon.item.CrimsonShieldItem;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 
 
+
 public class ModItems {
     // яйця
+
+    public static final Item THORNCALLER_SPAWN_EGG = registerItem(
+        "thorncaller_spawn_egg",
+        new SpawnEggItem(ModEntities.THORNCALLER, 0x245C32, 0x6B2D7C, new Item.Settings())
+    );
+
     public static final Item BLOODWALKER_SPAWN_EGG = registerItem(
         "bloodwalker_spawn_egg",
         new SpawnEggItem(ModEntities.BLOODWALKER, 0x940000, 0x000000, new Item.Settings())
+    );
+
+    public static final Item NIGHTMARE_SPAWN_EGG = registerItem(
+        "nightmare_spawn_egg",
+        new SpawnEggItem(ModEntities.NIGHTMARE, 0x1a1a1a, 0x8b0000, new Item.Settings())
     );
     
     // інструменти
@@ -88,7 +98,7 @@ public class ModItems {
         ArmorItem.Type.BOOTS, 
         new Item.Settings())
     );
-
+    
     public static final Item BLOOD_SHIELD = registerItem(
         "crimson_shield_item",
         new CrimsonShieldItem(new FabricItemSettings().maxDamage(500))
@@ -100,9 +110,5 @@ public class ModItems {
             CrimsonMoon.id(name),
             item
         );
-    }
-    
-    public static void registerModItems(){
-        
     }
 }

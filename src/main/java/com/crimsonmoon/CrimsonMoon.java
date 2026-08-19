@@ -1,15 +1,19 @@
 package com.crimsonmoon;
 
 import net.fabricmc.api.ModInitializer;
-
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.crimsonmoon.item.NoDropRegistry;
+import com.crimsonmoon.item.PendingItemStash;
 import com.crimsonmoon.world.ModWorldGen;
+import com.crimsonmoon.world.ThorncallerSpawnManager;
+import com.crimsonmoon.entity.ThorncallerEntity; 
 
-import net.fabricmc.api.ModInitializer; 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents; 
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents; 
@@ -29,10 +33,6 @@ import com.crimsonmoon.potion.ModPotions;
 
 public class CrimsonMoon implements ModInitializer {
 	public static final String MOD_ID = "crimsonmoon";
-
-	// This logger is used to write text to the console and the log file.
-	// It is considered best practice to use your mod id as the logger's name.
-	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	private static boolean STATE_CURSED = false;
 
@@ -116,13 +116,27 @@ public class CrimsonMoon implements ModInitializer {
 		
 		// Реєстрація пакетів 
 		ModItemGroups.registerItemGroups();
+		ModSounds.register();
 
-		ModItems.registerModItems();
 		ModBlocks.registerModBlocks();
 		ModEntities.registerModEntities();
 		ModWorldGen.generateModWorldGen();
 
-		ModSounds.registerSounds();
+		com.crimsonmoon.world.WatcherManager.register();
+		ThorncallerSpawnManager.register();
+
+		NoDropRegistry.protect(ModItems.BLOOD_INGOT);
+
+		ThorncallerEntity.MINION_TYPE = ModEntities.BLOODWALKER;
+
+		ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
+			for (ItemStack stack : PendingItemStash.take(oldPlayer.getUuid())) {
+				if (!newPlayer.getInventory().insertStack(stack)) {
+					newPlayer.dropItem(stack, false);
+				}
+			}
+		});
+
 		ParanoiaSystem.register();
 
 		ModPotions.registerPotions();

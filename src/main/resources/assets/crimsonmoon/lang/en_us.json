@@ -6,10 +6,19 @@
     "item.crimsonmoon.blood_leggings": "Blood leggings",
     "item.crimsonmoon.blood_boots": "Blood boots",
     "item.crimsonmoon.blood_ingot": "Blood ingot",
+    "entity.crimsonmoon.nightmare": "Nightmare",
+    "item.crimsonmoon.nightmare_spawn_egg": "Nightmare Spawn Egg",
+    "subtitle.crimsonmoon.nightmare_growl": "Nightmare growls",
+    "subtitle.crimsonmoon.nightmare_hurt": "Nightmare hurts",
+    "subtitle.crimsonmoon.nightmare_chase": "Nightmare roars",
     "itemgroup.crimson_group": "Кривавий місяць",
     "item.crimsonmoon.bloodwalker_spawn_egg": "Bloodwalker spawn egg",
-    "item.crimsonmoon.crimson_shield_item" : "Crimson shield",
+    "item.crimsonmoon.crimson_shield_item": "Crimson shield",
     "item.minecraft.potion.effect.crimson_regen": "Crimson Regeneration Potion",
     "item.minecraft.splash_potion.effect.crimson_regen": "Splash Crimson Regeneration Potion",
-    "item.minecraft.lingering_potion.effect.crimson_regen": "Lingering Crimson Regeneration Potion"
+    "item.minecraft.lingering_potion.effect.crimson_regen": "Lingering Crimson Regeneration Potion",
+    "entity.crimsonmoon.thorncaller": "Thorncaller",
+    "entity.crimsonmoon.bloodwalker": "Bloodwalker",
+    "entity.crimsonmoon.watcher": "Watcher",
+    "item.crimsonmoon.thorncaller_spawn_egg": "Thorncaller spawn egg"
 }

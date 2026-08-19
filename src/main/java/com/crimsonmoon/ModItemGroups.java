@@ -17,7 +17,6 @@ public class ModItemGroups{
             .icon(() -> new ItemStack(ModItems.BLOOD_STONE))
             .entries((displayContext, entries) -> {
 
-                entries.add(ModItems.BLOODWALKER_SPAWN_EGG);
                 entries.add(ModBlocks.CRIMSON_ORE);
                 
                 entries.add(ModItems.BLOOD_STONE);
@@ -34,6 +33,9 @@ public class ModItemGroups{
                 entries.add(ModItems.BLOOD_SHOVEL);
                 entries.add(ModItems.BLOOD_HOE);
                 entries.add(ModItems.BLOOD_SHIELD);
+                entries.add(ModItems.NIGHTMARE_SPAWN_EGG);
+                entries.add(ModItems.THORNCALLER_SPAWN_EGG);
+                entries.add(ModItems.BLOODWALKER_SPAWN_EGG);
             })
             .build()
     );

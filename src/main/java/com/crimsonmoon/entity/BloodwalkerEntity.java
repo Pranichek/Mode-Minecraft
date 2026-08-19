@@ -5,7 +5,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.*; 
 import net.minecraft.entity.attribute.DefaultAttributeContainer; 
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity; 
@@ -38,6 +37,11 @@ public class BloodwalkerEntity extends ZombieEntity {
             .add(EntityAttributes.GENERIC_ARMOR, 2.0);
     }
 
+    @Override
+    protected boolean burnsInDaylight() {
+        return false;
+    }
+
     // Поведение: атака в ближнем бою + обычное блуждание
     @Override
     protected void initGoals() {
@@ -66,8 +70,6 @@ public class BloodwalkerEntity extends ZombieEntity {
                     double angle = i * Math.PI / 180.0;
                     double x = this.getX() + Math.cos(angle) * currentRadius;
                     double z = this.getZ() + Math.sin(angle) * currentRadius;
-                    
-                    System.out.println("particlessss");
 
                     world.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, x, this.getY() + 0.1, z, 1, 0, 0, 0, 0);
                     world.spawnParticles(ParticleTypes.LARGE_SMOKE, x, this.getY() + 0.2, z, 1, 0, 0, 0, 0);
@@ -115,7 +117,6 @@ public class BloodwalkerEntity extends ZombieEntity {
         List<PlayerEntity> players = world.getEntitiesByClass(PlayerEntity.class, this.getBoundingBox().expand(5.0), entity -> true);
 
         for (PlayerEntity player : players){
-            System.out.println("hihi");
             boolean isUsingCrimsonShield = player.isBlocking() && player.getActiveItem().getItem() instanceof CrimsonShieldItem;
 
             if (isUsingCrimsonShield){

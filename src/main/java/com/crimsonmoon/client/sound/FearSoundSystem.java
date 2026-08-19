@@ -3,7 +3,6 @@ package com.crimsonmoon.client.sound;
 import com.crimsonmoon.ModSounds;
 import com.crimsonmoon.entity.BloodwalkerEntity;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.Box;
 
