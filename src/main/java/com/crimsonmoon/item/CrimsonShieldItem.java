@@ -6,13 +6,4 @@ public class CrimsonShieldItem extends ShieldItem {
     public CrimsonShieldItem(Settings settings) {
         super(settings);
     }
-
-    
-
-
-
-
-
-
-
 }

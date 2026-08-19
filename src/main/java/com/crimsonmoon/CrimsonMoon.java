@@ -25,6 +25,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text; 
 import net.minecraft.util.Formatting; 
 import net.minecraft.util.math.BlockPos;
+import com.crimsonmoon.potion.ModPotions;
 
 public class CrimsonMoon implements ModInitializer {
 	public static final String MOD_ID = "crimsonmoon";
@@ -123,6 +124,8 @@ public class CrimsonMoon implements ModInitializer {
 
 		ModSounds.registerSounds();
 		ParanoiaSystem.register();
+
+		ModPotions.registerPotions();
 	}
 
 	public static Identifier id(String path) {
