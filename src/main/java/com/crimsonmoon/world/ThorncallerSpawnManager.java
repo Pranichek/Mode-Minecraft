@@ -15,6 +15,7 @@ import net.minecraft.world.GameRules;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.registry.tag.BiomeTags;
 
 public class ThorncallerSpawnManager {
 
@@ -56,19 +57,25 @@ public class ThorncallerSpawnManager {
     }
 
     private static void trySpawn(ServerWorld world, ServerPlayerEntity player) {
-        BlockPos pos = findOutOfSightPosition(world, player);
-        if (pos == null) {
-            return;
-        }
-
-        ThorncallerEntity thorncaller = ModEntities.THORNCALLER.create(world);
-        if (thorncaller == null) {
-            return;
-        }
-
-        thorncaller.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0f, 0.0f);
-        world.spawnEntity(thorncaller);
+    BlockPos pos = findOutOfSightPosition(world, player);
+    if (pos == null) {
+        return;
     }
+
+    // Thorncaller — обитатель джунглей, спавним ТОЛЬКО в биомах джунглей
+    // (jungle / sparse_jungle / bamboo_jungle попадают в этот тег).
+    if (!world.getBiome(pos).isIn(BiomeTags.IS_JUNGLE)) {
+        return;
+    }
+
+    ThorncallerEntity thorncaller = ModEntities.THORNCALLER.create(world);
+    if (thorncaller == null) {
+        return;
+    }
+
+    thorncaller.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0f, 0.0f);
+    world.spawnEntity(thorncaller);
+}
 
     // Ищем точку, которая находится ВНЕ поля зрения игрока —
     // то есть за пределами конуса перед ним (тот же принцип, что и у Watcher).

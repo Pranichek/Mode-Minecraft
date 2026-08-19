@@ -10,5 +10,12 @@
     "item.crimsonmoon.nightmare_spawn_egg": "Nightmare Spawn Egg",
     "subtitle.crimsonmoon.nightmare_growl": "Nightmare growls",
     "subtitle.crimsonmoon.nightmare_hurt": "Nightmare hurts",
-    "subtitle.crimsonmoon.nightmare_chase": "Nightmare roars"
+    "subtitle.crimsonmoon.nightmare_chase": "Nightmare roars",
+    "itemgroup.crimson_group": "Кривавий місяць",
+    "item.crimsonmoon.bloodwalker_spawn_egg": "Bloodwalker spawn egg",
+    "item.crimsonmoon.crimson_shield_item" : "Crimson shield",
+    "entity.crimsonmoon.thorncaller": "Thorncaller",
+    "entity.crimsonmoon.bloodwalker": "Bloodwalker",
+    "entity.crimsonmoon.watcher": "Watcher",
+    "item.crimsonmoon.thorncaller_spawn_egg": "Thorncaller spawn egg"
 }
