@@ -18,9 +18,11 @@ public class ModItemGroups{
             .entries((displayContext, entries) -> {
 
                 entries.add(ModBlocks.CRIMSON_ORE);
+                entries.add(ModBlocks.MONOLIT);
                 
                 entries.add(ModItems.BLOOD_STONE);
                 entries.add(ModItems.BLOOD_INGOT);
+                entries.add(ModItems.BLOOD_MONOLIT);
                 
                 entries.add(ModItems.BLOOD_HELMET);
                 entries.add(ModItems.BLOOD_CHESTPLATE);

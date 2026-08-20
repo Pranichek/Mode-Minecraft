@@ -70,6 +70,11 @@ public class ModItems {
         new Item(new Item.Settings())
     );
 
+    public static final Item BLOOD_MONOLIT = registerItem(
+        "blood_monolit",
+        new Item(new Item.Settings())
+    );
+
     // броня
     public static final Item BLOOD_HELMET = registerItem(
         "blood_helmet",

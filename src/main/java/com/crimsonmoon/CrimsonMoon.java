@@ -31,6 +31,8 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import com.crimsonmoon.potion.ModPotions;
 
+
+
 public class CrimsonMoon implements ModInitializer {
 	public static final String MOD_ID = "crimsonmoon";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
@@ -45,7 +47,7 @@ public class CrimsonMoon implements ModInitializer {
 		// відслідковування ломання блоку
 		PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
 			
-			if(!world.isClient() && state.isOf(Blocks.DIAMOND_BLOCK) && !STATE_CURSED) {
+			if(!world.isClient() && state.isOf(ModBlocks.MONOLIT) && !STATE_CURSED) {
 				if (!player.getCommandTags().contains("cursed_player")){
 					player.addCommandTag("cursed_player");
 					
@@ -125,7 +127,8 @@ public class CrimsonMoon implements ModInitializer {
 		com.crimsonmoon.world.WatcherManager.register();
 		ThorncallerSpawnManager.register();
 
-		NoDropRegistry.protect(ModItems.BLOOD_INGOT);
+		NoDropRegistry.protect(ModItems.BLOOD_MONOLIT);
+		
 
 		ThorncallerEntity.MINION_TYPE = ModEntities.BLOODWALKER;
 

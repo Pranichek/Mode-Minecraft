@@ -17,6 +17,14 @@ public class ModBlocks {
         )
     );
 
+    public static final Block MONOLIT = registerBlock(
+        "monolit",
+        new Block(FabricBlockSettings.copyOf(Blocks.DIAMOND_ORE)
+        .strength(3.0f, 3.0f)
+        .requiresTool()
+            )
+    );
+
     private static Block registerBlock(String name, Block block) {
         Registry.register(
             Registries.BLOCK,

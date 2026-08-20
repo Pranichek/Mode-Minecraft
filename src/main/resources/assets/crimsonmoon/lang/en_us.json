@@ -20,5 +20,7 @@
     "entity.crimsonmoon.thorncaller": "Thorncaller",
     "entity.crimsonmoon.bloodwalker": "Bloodwalker",
     "entity.crimsonmoon.watcher": "Watcher",
-    "item.crimsonmoon.thorncaller_spawn_egg": "Thorncaller spawn egg"
+    "item.crimsonmoon.thorncaller_spawn_egg": "Thorncaller spawn egg",
+    "block.crimsonmoon.monolit": "Monolit",
+    "item.crimsonmoon.blood_monolit": "Blood monolit"
 }
