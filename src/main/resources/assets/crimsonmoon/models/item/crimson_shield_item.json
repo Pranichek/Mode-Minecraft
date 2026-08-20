@@ -1,10 +1,8 @@
 {
-    "credit": "Made with Blockbench",
-    "gui_light": "front",
-    "texture_size": [16, 16],
+    "parent": "block/block",
     "textures": {
-        "5": "crimsonmoon:item/crimson_shield_item",
-        "particle": "crimsonmoon:item/crimson_shield_item"
+        "5": "crimsonmoon:item/blood_shield",
+        "particle": "crimsonmoon:item/blood_shield"
     },
     "elements": [
         {
