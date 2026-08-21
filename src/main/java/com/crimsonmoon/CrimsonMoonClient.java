@@ -5,6 +5,7 @@ import com.crimsonmoon.client.render.BloodwalkerEntityRenderer;
 import com.crimsonmoon.client.render.WatcherEntityRenderer;
 import com.crimsonmoon.client.render.NightmareEntityRenderer;
 import com.crimsonmoon.client.render.ThorncallerEntityRenderer;
+import com.crimsonmoon.client.render.BloodBoltEntityRenderer;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -20,6 +21,7 @@ public class CrimsonMoonClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.WATCHER, WatcherEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.NIGHTMARE, NightmareEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.THORNCALLER, ThorncallerEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.BLOOD_BOLT, BloodBoltEntityRenderer::new);
 
         // HudRenderCallback.EVENT.register(new ParanoiaOverlay());
         HudRenderCallback.EVENT.register(new FearHudOverlay());

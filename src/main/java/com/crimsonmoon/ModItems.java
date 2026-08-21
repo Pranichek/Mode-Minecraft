@@ -13,6 +13,8 @@ import net.minecraft.item.ArmorItem;
 import com.crimsonmoon.item.CrimsonShieldItem;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 
+import com.crimsonmoon.item.BloodStaffItem;
+
 
 
 public class ModItems {
@@ -57,6 +59,11 @@ public class ModItems {
     public static final Item BLOOD_HOE = registerItem(
         "blood_hoe",
         new HoeItem(ModToolMaterials.BLOOD, 3, 0.0f, new Item.Settings())
+    );
+
+    public static final Item BLOOD_STAFF = registerItem(
+        "blood_staf",
+        new BloodStaffItem(new Item.Settings().maxCount(1))
     );
 
     // руди

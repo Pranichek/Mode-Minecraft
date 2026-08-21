@@ -36,6 +36,7 @@ public class ModItemGroups{
                 entries.add(ModItems.NIGHTMARE_SPAWN_EGG);
                 entries.add(ModItems.THORNCALLER_SPAWN_EGG);
                 entries.add(ModItems.BLOODWALKER_SPAWN_EGG);
+                entries.add(ModItems.BLOOD_STAFF);
             })
             .build()
     );
