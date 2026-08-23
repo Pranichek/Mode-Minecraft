@@ -13,7 +13,9 @@ public class BloodBoltEntityRenderer extends EntityRenderer<BloodBoltEntity> {
 
     @Override
     public Identifier getTexture(BloodBoltEntity entity) {
-        return new Identifier("minecraft", "textures/item/snowball.png");
+        return new Identifier("minecraft", "textures/item/snowball.png"); // не використовується, рендер порожній
     }
 
+    // render() навмисно не перевизначаємо — сутність невидима,
+    // весь візуал іде через частки в BloodBoltEntity.tick()
 }

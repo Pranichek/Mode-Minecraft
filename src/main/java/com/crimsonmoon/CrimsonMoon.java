@@ -128,6 +128,7 @@ public class CrimsonMoon implements ModInitializer {
 
 		ThorncallerEntity.MINION_TYPE = ModEntities.BLOODWALKER;
 
+
 		ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
 			for (ItemStack stack : PendingItemStash.take(oldPlayer.getUuid())) {
 				if (!newPlayer.getInventory().insertStack(stack)) {
