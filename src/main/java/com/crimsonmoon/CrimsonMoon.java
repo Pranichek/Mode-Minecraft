@@ -13,6 +13,8 @@ import com.crimsonmoon.item.PendingItemStash;
 import com.crimsonmoon.world.ModWorldGen;
 import com.crimsonmoon.world.ThorncallerSpawnManager;
 import com.crimsonmoon.entity.ThorncallerEntity; 
+import net.minecraft.potion.Potions;
+import net.minecraft.recipe.BrewingRecipeRegistry;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents; 
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -138,6 +140,14 @@ public class CrimsonMoon implements ModInitializer {
 		});
 
 		ParanoiaSystem.register();
+		ModPotions.register();
+		ArmorSetEffectManager.register();
+
+		// рецепти варки: базове зілля (ванільне) + Blood Ingot -> наше зілля.
+		// Різні базові зілля - тож один інгредієнт (Blood Ingot) не конфліктує.
+		BrewingRecipeRegistry.registerPotionRecipe(Potions.STRENGTH, ModItems.BLOOD_INGOT, ModPotions.BATTLE_POTION);
+		BrewingRecipeRegistry.registerPotionRecipe(Potions.SWIFTNESS, ModItems.BLOOD_INGOT, ModPotions.BERSERKER_POTION);
+		BrewingRecipeRegistry.registerPotionRecipe(Potions.REGENERATION, ModItems.BLOOD_INGOT, ModPotions.HEROIC_POTION);
 	}
 
 	public static Identifier id(String path) {
