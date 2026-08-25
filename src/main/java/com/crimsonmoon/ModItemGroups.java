@@ -39,6 +39,9 @@ public class ModItemGroups{
                 entries.add(ModItems.THORNCALLER_SPAWN_EGG);
                 entries.add(ModItems.BLOODWALKER_SPAWN_EGG);
                 entries.add(ModItems.BLOOD_STAFF);
+                entries.add(ModItems.BLOOD_MACE);
+                entries.add(ModItems.BLOOD_BOW);
+                entries.add(ModItems.BLOOD_CLOT);
 
                 entries.add(PotionUtil.setPotion(new ItemStack(Items.POTION), ModPotions.BATTLE_POTION));
                 entries.add(PotionUtil.setPotion(new ItemStack(Items.POTION), ModPotions.BERSERKER_POTION));

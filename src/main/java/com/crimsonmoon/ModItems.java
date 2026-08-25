@@ -14,6 +14,8 @@ import com.crimsonmoon.item.CrimsonShieldItem;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 
 import com.crimsonmoon.item.BloodStaffItem;
+import com.crimsonmoon.item.BloodMaceItem;
+import com.crimsonmoon.item.BloodBowItem;
 
 
 
@@ -64,6 +66,21 @@ public class ModItems {
     public static final Item BLOOD_STAFF = registerItem(
         "blood_staf",
         new BloodStaffItem(new Item.Settings().maxCount(1))
+    );
+
+    public static final Item BLOOD_MACE = registerItem(
+        "blood_mace",
+        new BloodMaceItem(new Item.Settings())
+    );
+
+    public static final Item BLOOD_BOW = registerItem(
+        "blood_bow",
+        new BloodBowItem(new Item.Settings().maxCount(1).maxDamage(ModToolMaterials.BLOOD.getDurability()))
+    );
+
+    public static final Item BLOOD_CLOT = registerItem(
+        "blood_clot",
+        new Item(new Item.Settings())
     );
 
     // руди
