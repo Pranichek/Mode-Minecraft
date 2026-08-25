@@ -10,6 +10,8 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.item.ArmorItem;
+
+import com.crimsonmoon.item.BloodNecklaceItem;
 import com.crimsonmoon.item.CrimsonShieldItem;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 
@@ -108,6 +110,9 @@ public class ModItems {
         "crimson_shield_item",
         new CrimsonShieldItem(new FabricItemSettings().maxDamage(500))
     );
+
+    public static final Item BLOOD_NECKLACE = registerItem("blood_necklace", 
+        new BloodNecklaceItem(new FabricItemSettings().maxCount(1)));
 
     private static Item registerItem(String name, Item item){
         return Registry.register(

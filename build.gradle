@@ -1,23 +1,24 @@
 plugins {
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
-	id 'maven-publish'
+    id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+    id 'maven-publish'
 }
 
 version = project.mod_version
 group = project.maven_group
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
-
-	// GeckoLib — используется для кастомной модели/анимаций сущности Nightmare
-	maven {
-		name = "GeckoLib"
-		url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
-	}
+    maven {
+        name = "GeckoLib"
+        url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+    }
+    maven {
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/releases/"
+    }
+    maven {
+        name = "LadysnakeMods"
+        url = "https://maven.ladysnake.org/releases"
+    }
 }
 
 dependencies {
@@ -33,6 +34,13 @@ dependencies {
 	// include(...) зашивает GeckoLib прямо внутрь jar мода (Jar-in-Jar) —
 	// игроку не нужно ставить GeckoLib отдельно
 	include modImplementation("software.bernie.geckolib:geckolib-fabric-1.20.1:${project.geckolib_version}")
+
+	// Trinkets API
+    modImplementation "dev.emi:trinkets:3.7.2"
+    
+    // Cardinal Components (нужен для работы Trinkets)
+    modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.2.2"
+    modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:5.2.2"
 }
 
 processResources {
@@ -81,9 +89,21 @@ publishing {
 		// Notice: This block does NOT have the same function as the block in the top level.
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
+
+		// GeckoLib — используется для кастомной модели/анимаций сущности Nightmare
 		maven {
-			name = "Modrinth"
-			url = "https://api.modrinth.com/maven"
+			name = "GeckoLib"
+			url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+		}
+		
+		// Ссылки для Trinkets и Cardinal Components
+		maven {
+			name = "TerraformersMC"
+			url = "https://maven.terraformersmc.com/releases/"
+		}
+		maven {
+			name = "LadysnakeMods"
+			url = "https://maven.ladysnake.org/releases"
 		}
 	}
 }

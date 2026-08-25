@@ -28,6 +28,7 @@ public class ModItemGroups{
                 entries.add(ModItems.BLOOD_CHESTPLATE);
                 entries.add(ModItems.BLOOD_LEGGINGS);
                 entries.add(ModItems.BLOOD_BOOTS);
+                entries.add(ModItems.BLOOD_NECKLACE);
 
                 entries.add(ModItems.BLOOD_SWORD);
                 entries.add(ModItems.BLOOD_PICKAXE);
@@ -38,6 +39,7 @@ public class ModItemGroups{
                 entries.add(ModItems.NIGHTMARE_SPAWN_EGG);
                 entries.add(ModItems.THORNCALLER_SPAWN_EGG);
                 entries.add(ModItems.BLOODWALKER_SPAWN_EGG);
+                
             })
             .build()
     );

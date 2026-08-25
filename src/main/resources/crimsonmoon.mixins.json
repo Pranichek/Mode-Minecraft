@@ -5,7 +5,8 @@
 	"mixins": [
 		"ExampleMixin",
 		"PlayerInventoryDropMixin",
-		"PlayerEntityMixin"
+		"PlayerEntityMixin",
+		"GameRendererInvoker"
 	],
 	"injectors": {
 		"defaultRequire": 1
