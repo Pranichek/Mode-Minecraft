@@ -2,6 +2,7 @@ package com.crimsonmoon.item;
 
 import com.crimsonmoon.ModToolMaterials;
 
+import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
@@ -12,6 +13,8 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.Box;
@@ -32,7 +35,7 @@ import java.util.List;
  */
 public class BloodMaceItem extends SwordItem {
 
-    private static final int SHOCKWAVE_COOLDOWN_TICKS = 7 * 20; // 7с — мінімальна перезарядка
+    private static final int SHOCKWAVE_COOLDOWN_TICKS = 7 * 20; // 7с — мінімальна перезарядка за завданням
 
     private static final float SHOCKWAVE_DAMAGE = 8.0f;
     private static final double SHOCKWAVE_RADIUS = 4.5;
@@ -43,6 +46,13 @@ public class BloodMaceItem extends SwordItem {
         // важка й повільна зброя: більше шкоди за удар, менша швидкість атаки за меч
         super(ModToolMaterials.BLOOD, 7, -3.2f, settings);
     }
+
+    @Override
+    public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext context) {
+        super.appendTooltip(stack, world, tooltip, context);
+        tooltip.add(Text.translatable("item.crimsonmoon.blood_mace.tooltip_ability").formatted(Formatting.DARK_GRAY));
+    }
+
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {

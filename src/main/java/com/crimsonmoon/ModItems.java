@@ -16,6 +16,7 @@ import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import com.crimsonmoon.item.BloodStaffItem;
 import com.crimsonmoon.item.BloodMaceItem;
 import com.crimsonmoon.item.BloodBowItem;
+import com.crimsonmoon.item.BloodClotItem;
 
 
 
@@ -80,7 +81,7 @@ public class ModItems {
 
     public static final Item BLOOD_CLOT = registerItem(
         "blood_clot",
-        new Item(new Item.Settings())
+        new BloodClotItem(new Item.Settings())
     );
 
     // руди
