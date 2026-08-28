@@ -34,6 +34,7 @@ public class CrimsonMoonClient implements ClientModInitializer {
 
         // HudRenderCallback.EVENT.register(new ParanoiaOverlay());
         HudRenderCallback.EVENT.register(new FearHudOverlay());
+        FearHudOverlay.register();
         FearSoundSystem.register();
 
         registerPotionColors();

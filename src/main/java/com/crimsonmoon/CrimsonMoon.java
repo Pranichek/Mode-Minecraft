@@ -142,6 +142,7 @@ public class CrimsonMoon implements ModInitializer {
 		ParanoiaSystem.register();
 		ModPotions.register();
 		ArmorSetEffectManager.register();
+		FearManager.register();
 
 		// рецепти варки: базове зілля (ванільне) + Blood Ingot -> наше зілля.
 		// Різні базові зілля - тож один інгредієнт (Blood Ingot) не конфліктує.

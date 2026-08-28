@@ -21,6 +21,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
 
+import com.crimsonmoon.FearManager;
 import com.crimsonmoon.entity.BloodBoltEntity;
 
 import java.util.List;
@@ -29,6 +30,11 @@ public class BloodStaffItem extends Item {
 
     private static final int RANGED_COOLDOWN_TICKS = 20; // 1с
     private static final int SLAM_COOLDOWN_TICKS = 13 * 20;    // 13с
+
+    // Способности посоха питаются от шкалы страха ("заряд") — см. FearManager.
+    // Обычный выстрел заметно дешевле способности (удара об землю).
+    private static final float BOLT_FEAR_COST = 5.0f;
+    private static final float SLAM_FEAR_COST = 20.0f;
 
     private static final float SLAM_DAMAGE = 15.0f;
     private static final double SLAM_RADIUS = 8.0;
@@ -46,6 +52,7 @@ public class BloodStaffItem extends Item {
         super.appendTooltip(stack, world, tooltip, context);
         tooltip.add(Text.translatable("item.crimsonmoon.blood_staf.tooltip_attack").formatted(Formatting.GRAY));
         tooltip.add(Text.translatable("item.crimsonmoon.blood_staf.tooltip_ability").formatted(Formatting.DARK_GRAY));
+        tooltip.add(Text.translatable("item.crimsonmoon.blood_staf.tooltip_fear").formatted(Formatting.DARK_PURPLE));
     }
 
     @Override
@@ -57,11 +64,19 @@ public class BloodStaffItem extends Item {
             if (time < getReadyTick(stack, NBT_SLAM_READY_TICK)) {
                 return TypedActionResult.pass(stack);
             }
+            if (!world.isClient && !FearManager.consume(user, SLAM_FEAR_COST)) {
+                notifyNotEnoughFear(user);
+                return TypedActionResult.fail(stack);
+            }
             groundSlam(world, user);
             setReadyTick(stack, NBT_SLAM_READY_TICK, time + SLAM_COOLDOWN_TICKS);
         } else {
             if (time < getReadyTick(stack, NBT_BOLT_READY_TICK)) {
                 return TypedActionResult.pass(stack);
+            }
+            if (!world.isClient && !FearManager.consume(user, BOLT_FEAR_COST)) {
+                notifyNotEnoughFear(user);
+                return TypedActionResult.fail(stack);
             }
             shootBolt(world, user);
             setReadyTick(stack, NBT_BOLT_READY_TICK, time + RANGED_COOLDOWN_TICKS);
@@ -69,6 +84,13 @@ public class BloodStaffItem extends Item {
 
         user.swingHand(hand);
         return TypedActionResult.success(stack, world.isClient());
+    }
+
+    /** Недостаточно "заряда" страха для каста — сообщаем игроку вместо тихого отказа. */
+    private static void notifyNotEnoughFear(PlayerEntity user) {
+        user.sendMessage(Text.translatable("item.crimsonmoon.not_enough_fear").formatted(Formatting.DARK_GRAY), true);
+        user.getWorld().playSound(null, user.getBlockPos(), SoundEvents.BLOCK_FIRE_EXTINGUISH,
+            SoundCategory.PLAYERS, 0.4f, 0.6f);
     }
 
     private static long getReadyTick(ItemStack stack, String key) {
