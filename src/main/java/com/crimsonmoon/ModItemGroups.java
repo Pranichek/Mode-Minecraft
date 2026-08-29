@@ -2,7 +2,9 @@ package com.crimsonmoon;
 
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup; 
 import net.minecraft.item.ItemGroup; 
+import net.minecraft.item.Items;
 import net.minecraft.item.ItemStack; 
+import net.minecraft.potion.PotionUtil;
 import net.minecraft.registry.Registries; 
 import net.minecraft.registry.Registry; 
 import net.minecraft.text.Text; 
@@ -39,6 +41,14 @@ public class ModItemGroups{
                 entries.add(ModItems.NIGHTMARE_SPAWN_EGG);
                 entries.add(ModItems.THORNCALLER_SPAWN_EGG);
                 entries.add(ModItems.BLOODWALKER_SPAWN_EGG);
+                entries.add(ModItems.BLOOD_STAFF);
+                entries.add(ModItems.BLOOD_MACE);
+                entries.add(ModItems.BLOOD_BOW);
+                entries.add(ModItems.BLOOD_CLOT);
+
+                entries.add(PotionUtil.setPotion(new ItemStack(Items.POTION), ModPotions.BATTLE_POTION));
+                entries.add(PotionUtil.setPotion(new ItemStack(Items.POTION), ModPotions.BERSERKER_POTION));
+                entries.add(PotionUtil.setPotion(new ItemStack(Items.POTION), ModPotions.HEROIC_POTION));
                 
             })
             .build()

@@ -4,6 +4,8 @@ import com.crimsonmoon.entity.BloodwalkerEntity;
 import com.crimsonmoon.entity.NightmareEntity;
 import com.crimsonmoon.entity.WatcherEntity;
 import com.crimsonmoon.entity.ThorncallerEntity;
+import com.crimsonmoon.entity.BloodBoltEntity;
+import com.crimsonmoon.entity.BloodClotEntity;
 
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
@@ -43,6 +45,26 @@ public class ModEntities {
         CrimsonMoon.id("thorncaller"),
         FabricEntityTypeBuilder.create(SpawnGroup.MONSTER, ThorncallerEntity::new)
             .dimensions(EntityDimensions.fixed(0.6f, 1.95f))
+            .build()
+    );
+
+    public static final EntityType<BloodBoltEntity> BLOOD_BOLT = Registry.register(
+        Registries.ENTITY_TYPE,
+        CrimsonMoon.id("blood_bolt"),
+        FabricEntityTypeBuilder.<BloodBoltEntity>create(SpawnGroup.MISC, BloodBoltEntity::new)
+            .dimensions(EntityDimensions.fixed(0.25f, 0.25f))
+            .trackRangeBlocks(64)
+            .trackedUpdateRate(10)
+            .build()
+    );
+
+    public static final EntityType<BloodClotEntity> BLOOD_CLOT = Registry.register(
+        Registries.ENTITY_TYPE,
+        CrimsonMoon.id("blood_clot"),
+        FabricEntityTypeBuilder.<BloodClotEntity>create(SpawnGroup.MISC, BloodClotEntity::new)
+            .dimensions(EntityDimensions.fixed(0.25f, 0.25f))
+            .trackRangeBlocks(64)
+            .trackedUpdateRate(10)
             .build()
     );
 

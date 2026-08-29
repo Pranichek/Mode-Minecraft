@@ -1,0 +1,11 @@
+{
+    "parent": "minecraft:item/generated",
+    "textures": {
+        "layer0": "crimsonmoon:item/blood_bow"
+    },
+    "overrides": [
+        { "predicate": { "pulling": 1 }, "model": "crimsonmoon:item/blood_bow_pulling_0" },
+        { "predicate": { "pulling": 1, "pull": 0.65 }, "model": "crimsonmoon:item/blood_bow_pulling_1" },
+        { "predicate": { "pulling": 1, "pull": 0.9 }, "model": "crimsonmoon:item/blood_bow_pulling_2" }
+    ]
+}

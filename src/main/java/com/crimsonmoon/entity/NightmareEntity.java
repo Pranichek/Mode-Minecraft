@@ -6,16 +6,18 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.ai.goal.LookAroundGoal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
-// import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.ai.goal.RevengeGoal;
 import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.entity.ai.goal.WanderAroundFarGoal;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.boss.BossBar;
+import net.minecraft.entity.boss.ServerBossBar;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.world.World;
@@ -30,37 +32,35 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * Nightmare — враждебная сущность высотой 3 блока.
- * Атакует и преследует игрока. Модель/анимации грузятся через GeckoLib
- * из assets/crimsonmoon/geo/nightmare.geo.json и
- * assets/crimsonmoon/animations/nightmare.animation.json — их можно
- * заменять файлами из Blockbench, ничего в коде менять не нужно.
- *
- * Названия анимаций, которые ищет контроллер ниже:
- *   animation.nightmare.idle
- *   animation.nightmare.walk
- *   animation.nightmare.attack
- * Если в своём Blockbench-проекте назовёшь анимации иначе — поменяй
- * строки в registerControllers() и в triggerAnim(...) ниже.
+ * Nightmare — босс-сущность.
+ * Атакует и преследует игрока. Имеет Boss Bar.
  */
 public class NightmareEntity extends HostileEntity implements GeoEntity {
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-
     private boolean wasChasingTarget = false;
+
+    // --- НАСТРОЙКА БОСС-БАРА ---
+    // Создаем красную полоску босса, которая также немного затемняет небо при битве
+    private final ServerBossBar bossBar = (ServerBossBar) new ServerBossBar(
+            this.getDisplayName(),
+            BossBar.Color.RED,
+            BossBar.Style.PROGRESS
+    ).setDarkenSky(true);
 
     public NightmareEntity(EntityType<? extends HostileEntity> entityType, World world) {
         super(entityType, world);
-        this.experiencePoints = 10;
+        this.experiencePoints = 50; // Босс дает больше опыта
     }
 
+    // Характеристики босса
     public static DefaultAttributeContainer.Builder createNightmareAttributes() {
         return HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_MAX_HEALTH, 40.0)
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.45)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 7.0)
-            .add(EntityAttributes.GENERIC_ARMOR, 2.0)
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 40.0);
+            .add(EntityAttributes.GENERIC_MAX_HEALTH, 150.0) // Здоровье босса (150 ХП = 75 сердечек)
+            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.35) // Чуть медленнее, но страшнее
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 12.0) // Сильный урон
+            .add(EntityAttributes.GENERIC_ARMOR, 5.0) // Броня
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 64.0); // Видит игрока издалека
     }
 
     @Override
@@ -75,6 +75,28 @@ public class NightmareEntity extends HostileEntity implements GeoEntity {
         this.targetSelector.add(2, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
     }
 
+    // --- МЕТОДЫ БОСС-БАРА ---
+    // Показываем полоску здоровья, когда игрок подходит к боссу
+    @Override
+    public void onStartedTrackingBy(ServerPlayerEntity player) {
+        super.onStartedTrackingBy(player);
+        this.bossBar.addPlayer(player);
+    }
+
+    // Убираем полоску, когда игрок убегает далеко
+    @Override
+    public void onStoppedTrackingBy(ServerPlayerEntity player) {
+        super.onStoppedTrackingBy(player);
+        this.bossBar.removePlayer(player);
+    }
+
+    // Обновляем здоровье на полоске каждый тик
+    @Override
+    protected void mobTick() {
+        super.mobTick();
+        this.bossBar.setPercent(this.getHealth() / this.getMaxHealth());
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -82,19 +104,7 @@ public class NightmareEntity extends HostileEntity implements GeoEntity {
         if (!this.getWorld().isClient) {
             boolean isChasingNow = this.getTarget() != null;
             if (isChasingNow && !this.wasChasingTarget) {
-                this.getWorld().playSound(
-                    null, this.getBlockPos(),
-                    ModSounds.NIGHTMARE_CHASE, SoundCategory.HOSTILE,
-                    1.0f, this.getSoundPitch()
-                );
-            }
-            this.wasChasingTarget = isChasingNow;
-        }
-
-        if (!this.getWorld().isClient) {
-            boolean isChasingNow = this.getTarget() != null;
-            if (isChasingNow && !this.wasChasingTarget) {
-                // цель только что появилась — проигрываем звук погони один раз
+                // Цель только что появилась — проигрываем жуткий звук погони
                 this.getWorld().playSound(
                     null, this.getBlockPos(),
                     ModSounds.NIGHTMARE_CHASE, SoundCategory.HOSTILE,
@@ -114,11 +124,7 @@ public class NightmareEntity extends HostileEntity implements GeoEntity {
         return result;
     }
 
-    // ---- звуки ----
-    // Настоящие .ogg-файлы нужно положить сюда (см. README-NIGHTMARE.md):
-    //   assets/crimsonmoon/sounds/nightmare/growl.ogg
-    //   assets/crimsonmoon/sounds/nightmare/hurt.ogg
-    //   assets/crimsonmoon/sounds/nightmare/chase.ogg
+    // ---- Звуки ----
     @Override
     public SoundEvent getAmbientSound() {
         return ModSounds.NIGHTMARE_GROWL;
@@ -134,7 +140,7 @@ public class NightmareEntity extends HostileEntity implements GeoEntity {
         return ModSounds.NIGHTMARE_HURT;
     }
 
-    // ---- GeckoLib ----
+    // ---- GeckoLib Анимации ----
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "main_controller", 5, this::movementPredicate)
