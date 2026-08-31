@@ -30,9 +30,9 @@ public class BloodStaffItem extends Item {
     private static final int RANGED_COOLDOWN_TICKS = 20; // 1с
     private static final int SLAM_COOLDOWN_TICKS = 13 * 20;    // 13с
 
-    private static final float SLAM_DAMAGE = 15.0f;
-    private static final double SLAM_RADIUS = 8.0;
-    private static final double SLAM_KNOCKBACK = 1.4;
+    private static final float SLAM_DAMAGE = 24.0f;
+    private static final double SLAM_RADIUS = 10.0;
+    private static final double SLAM_KNOCKBACK = 2.2;
 
     private static final String NBT_BOLT_READY_TICK = "BoltReadyTick";
     private static final String NBT_SLAM_READY_TICK = "SlamReadyTick";
@@ -93,6 +93,17 @@ public class BloodStaffItem extends Item {
         bolt.setPosition(user.getX(), user.getEyeY() - 0.1, user.getZ());
         bolt.setVelocity(user, user.getPitch(), user.getYaw(), 0.0f, 1.6f, 0.0f);
         world.spawnEntity(bolt);
+
+        // короткая яркая вспышка у "дула" — компактная, без дыма
+        if (world instanceof ServerWorld serverWorld) {
+            Vec3d look = user.getRotationVec(1.0f);
+            double mx = user.getX() + look.x * 0.8;
+            double my = user.getEyeY() - 0.1 + look.y * 0.8;
+            double mz = user.getZ() + look.z * 0.8;
+            serverWorld.spawnParticles(
+                new DustParticleEffect(new Vector3f(0.95f, 0.1f, 0.1f), 1.4f),
+                mx, my, mz, 6, 0.08, 0.08, 0.08, 0.0);
+        }
     }
 
     // ==== 2. Shift + ПКМ — удар посохом об землю ====
