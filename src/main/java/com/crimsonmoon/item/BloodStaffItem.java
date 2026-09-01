@@ -21,6 +21,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
 
+import com.crimsonmoon.FearManager;
 import com.crimsonmoon.entity.BloodBoltEntity;
 
 import java.util.List;
@@ -34,6 +35,11 @@ public class BloodStaffItem extends Item {
     private static final double SLAM_RADIUS = 10.0;
     private static final double SLAM_KNOCKBACK = 2.2;
 
+    // Способности посоха питаются от шкалы страха ("заряд") — см. FearManager.
+    // Обычный выстрел заметно дешевле способности (удара об землю).
+    private static final float BOLT_FEAR_COST = 5.0f;
+    private static final float SLAM_FEAR_COST = 20.0f;
+
     private static final String NBT_BOLT_READY_TICK = "BoltReadyTick";
     private static final String NBT_SLAM_READY_TICK = "SlamReadyTick";
 
@@ -46,6 +52,7 @@ public class BloodStaffItem extends Item {
         super.appendTooltip(stack, world, tooltip, context);
         tooltip.add(Text.translatable("item.crimsonmoon.blood_staf.tooltip_attack").formatted(Formatting.GRAY));
         tooltip.add(Text.translatable("item.crimsonmoon.blood_staf.tooltip_ability").formatted(Formatting.DARK_GRAY));
+        tooltip.add(Text.translatable("item.crimsonmoon.blood_staf.tooltip_fear").formatted(Formatting.DARK_PURPLE));
     }
 
     @Override
@@ -57,11 +64,35 @@ public class BloodStaffItem extends Item {
             if (time < getReadyTick(stack, NBT_SLAM_READY_TICK)) {
                 return TypedActionResult.pass(stack);
             }
+            if (world.isClient) {
+                // На клиенте нет доступа к реальному значению FearManager —
+                // используем известное по синхронизации HUD-значение, чтобы
+                // НЕ проигрывать замах/не ставить кулдаун, если сервер точно
+                // откажет. Раньше здесь проверка полностью пропускалась
+                // (world.isClient делал левую часть && ложной), из-за чего
+                // способность выглядела так, будто она сработала, хотя на
+                // самом деле сервер её отклонял, — страх при этом не тратился,
+                // а кулдаун всё равно включался.
+                if (!hasEnoughFearClientSide(user, SLAM_FEAR_COST)) {
+                    return TypedActionResult.fail(stack);
+                }
+            } else if (!FearManager.consume(user, SLAM_FEAR_COST)) {
+                notifyNotEnoughFear(user);
+                return TypedActionResult.fail(stack);
+            }
             groundSlam(world, user);
             setReadyTick(stack, NBT_SLAM_READY_TICK, time + SLAM_COOLDOWN_TICKS);
         } else {
             if (time < getReadyTick(stack, NBT_BOLT_READY_TICK)) {
                 return TypedActionResult.pass(stack);
+            }
+            if (world.isClient) {
+                if (!hasEnoughFearClientSide(user, BOLT_FEAR_COST)) {
+                    return TypedActionResult.fail(stack);
+                }
+            } else if (!FearManager.consume(user, BOLT_FEAR_COST)) {
+                notifyNotEnoughFear(user);
+                return TypedActionResult.fail(stack);
             }
             shootBolt(world, user);
             setReadyTick(stack, NBT_BOLT_READY_TICK, time + RANGED_COOLDOWN_TICKS);
@@ -69,6 +100,28 @@ public class BloodStaffItem extends Item {
 
         user.swingHand(hand);
         return TypedActionResult.success(stack, world.isClient());
+    }
+
+    /**
+     * Клиентское предсказание нехватки страха — используем последнее значение,
+     * присланное сервером для HUD ({@code FearHudOverlay.currentFear}), чтобы
+     * заранее (без круговой задержки на сервер и обратно) не проигрывать
+     * замах и не выставлять кулдаун предмета, если сервер всё равно откажет.
+     * Реальная трата (и финальная проверка) остаётся только на сервере —
+     * см. {@link FearManager#consume}.
+     */
+    private static boolean hasEnoughFearClientSide(PlayerEntity user, float amount) {
+        if (user.isCreative() || user.isSpectator()) {
+            return true;
+        }
+        return com.crimsonmoon.client.gui.FearHudOverlay.currentFear + 1.0e-4f >= amount;
+    }
+
+    /** Недостаточно "заряда" страха для каста — сообщаем игроку вместо тихого отказа. */
+    private static void notifyNotEnoughFear(PlayerEntity user) {
+        user.sendMessage(Text.translatable("item.crimsonmoon.not_enough_fear").formatted(Formatting.DARK_GRAY), true);
+        user.getWorld().playSound(null, user.getBlockPos(), SoundEvents.BLOCK_FIRE_EXTINGUISH,
+            SoundCategory.PLAYERS, 0.4f, 0.6f);
     }
 
     private static long getReadyTick(ItemStack stack, String key) {

@@ -201,6 +201,12 @@ public class ThorncallerEntity extends ZombieEntity implements GeoEntity {
     protected void initGoals() {
         this.goalSelector.add(0, new SwimGoal(this));
         this.goalSelector.add(2, new MeleeAttackGoal(this, 1.0, false));
+        // Взаимодействие с биомом джунглей: карабканье по деревьям и укрытие за
+        // стволами/листвой. Обе используют управление MOVE, поэтому конкурируют
+        // за приоритет с ближним боем и блужданием, но не мешают атакам-способностям
+        // (те не завязаны на goalSelector, см. tick()).
+        this.goalSelector.add(3, new ThorncallerTreeClimbGoal(this));
+        this.goalSelector.add(4, new ThorncallerTreeHideGoal(this));
         this.goalSelector.add(6, new WanderAroundFarGoal(this, 1.0));
         this.goalSelector.add(7, new LookAtEntityGoal(this, PlayerEntity.class, 8.0f));
         this.goalSelector.add(8, new LookAroundGoal(this));
@@ -227,6 +233,12 @@ public class ThorncallerEntity extends ZombieEntity implements GeoEntity {
     public void onDeath(DamageSource damageSource) {
         super.onDeath(damageSource);
         this.bossBar.clearPlayers();
+
+        // Снимаем "флажок активного Thorncaller" и запускаем 10-минутный
+        // кулдаун до следующего возможного спавна (см. ThorncallerSpawnManager).
+        if (!this.getWorld().isClient && this.getWorld() instanceof ServerWorld serverWorld) {
+            com.crimsonmoon.world.ThorncallerSpawnManager.onThorncallerDied(serverWorld, this);
+        }
     }
 
     @Override

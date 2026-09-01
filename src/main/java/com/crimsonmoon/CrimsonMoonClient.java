@@ -8,6 +8,7 @@ import com.crimsonmoon.client.render.ThorncallerEntityRenderer;
 import com.crimsonmoon.client.render.BloodBoltEntityRenderer;
 import com.crimsonmoon.client.render.BloodClotEntityRenderer;
 import com.crimsonmoon.mixin.GameRendererInvoker;
+import com.crimsonmoon.client.render.MonsterikEntityRenderer;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -53,8 +54,10 @@ public class CrimsonMoonClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.THORNCALLER, ThorncallerEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.BLOOD_BOLT, BloodBoltEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.BLOOD_CLOT, BloodClotEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.MONSTERIK, MonsterikEntityRenderer::new);
 
         HudRenderCallback.EVENT.register(new FearHudOverlay());
+        FearHudOverlay.register();
         FearSoundSystem.register();
 
         registerPotionColors();

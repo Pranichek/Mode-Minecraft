@@ -71,6 +71,10 @@ public class CrimsonMoon implements ModInitializer {
             }
         });
 
+        PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->
+            !world.getRegistryKey().equals(ModDimensions.BOSS_REALM)
+        );
+
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
             if(!world.isClient() && state.isOf(ModBlocks.MONOLIT)) {
                 ServerWorld serverWorld = (ServerWorld) world;
@@ -159,6 +163,11 @@ public class CrimsonMoon implements ModInitializer {
         com.crimsonmoon.world.WatcherManager.register();
         ThorncallerSpawnManager.register();
         NoDropRegistry.protect(ModItems.BLOOD_MONOLIT);
+
+        BossArenaCommand.register();
+        com.crimsonmoon.world.MonsterikBossManager.register();
+        MonsterikBossCommand.register();
+        FearManager.register();
 
         ThorncallerEntity.MINION_TYPE = ModEntities.BLOODWALKER;
 

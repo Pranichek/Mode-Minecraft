@@ -1,5 +1,6 @@
 package com.crimsonmoon.item;
 
+import com.crimsonmoon.FearManager;
 import com.crimsonmoon.ModToolMaterials;
 
 import net.minecraft.client.item.TooltipContext;
@@ -37,6 +38,9 @@ public class BloodMaceItem extends SwordItem {
 
     private static final int SHOCKWAVE_COOLDOWN_TICKS = 7 * 20; // 7с — мінімальна перезарядка за завданням
 
+    // Ударна хвиля живиться від шкали страху ("заряд") — див. FearManager.
+    private static final float SHOCKWAVE_FEAR_COST = 18.0f;
+
     private static final float SHOCKWAVE_DAMAGE = 8.0f;
     private static final double SHOCKWAVE_RADIUS = 4.5;
     private static final double SHOCKWAVE_KNOCKBACK = 2.2;
@@ -51,6 +55,7 @@ public class BloodMaceItem extends SwordItem {
     public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
         tooltip.add(Text.translatable("item.crimsonmoon.blood_mace.tooltip_ability").formatted(Formatting.DARK_GRAY));
+        tooltip.add(Text.translatable("item.crimsonmoon.blood_mace.tooltip_fear").formatted(Formatting.DARK_PURPLE));
     }
 
 
@@ -66,11 +71,42 @@ public class BloodMaceItem extends SwordItem {
             return TypedActionResult.pass(stack);
         }
 
+        if (!world.isClient && !FearManager.consume(user, SHOCKWAVE_FEAR_COST)) {
+            notifyNotEnoughFear(user);
+            return TypedActionResult.fail(stack);
+        }
+        if (world.isClient && !hasEnoughFearClientSide(user, SHOCKWAVE_FEAR_COST)) {
+            // Раньше эта проверка на клиенте не выполнялась вообще (условие
+            // "!world.isClient && ..." всегда ложно на клиенте), из-за чего
+            // замах и кулдаун ставились, даже когда сервер отказывал —
+            // визуально способность как будто срабатывала, а по факту нет.
+            return TypedActionResult.fail(stack);
+        }
+
         shockwave(world, user);
         user.getItemCooldownManager().set(this, SHOCKWAVE_COOLDOWN_TICKS);
         user.swingHand(hand);
 
         return TypedActionResult.success(stack, world.isClient());
+    }
+
+    /**
+     * Клиентское предсказание нехватки страха — см. подробное объяснение
+     * в {@code BloodStaffItem.hasEnoughFearClientSide}. Реальная трата
+     * происходит только на сервере, в {@link FearManager#consume}.
+     */
+    private static boolean hasEnoughFearClientSide(PlayerEntity user, float amount) {
+        if (user.isCreative() || user.isSpectator()) {
+            return true;
+        }
+        return com.crimsonmoon.client.gui.FearHudOverlay.currentFear + 1.0e-4f >= amount;
+    }
+
+    /** Недостатньо "заряду" страху для каста — повідомляємо гравця замість тихої відмови. */
+    private static void notifyNotEnoughFear(PlayerEntity user) {
+        user.sendMessage(Text.translatable("item.crimsonmoon.not_enough_fear").formatted(Formatting.DARK_GRAY), true);
+        user.getWorld().playSound(null, user.getBlockPos(), SoundEvents.BLOCK_FIRE_EXTINGUISH,
+            SoundCategory.PLAYERS, 0.4f, 0.6f);
     }
 
     // ==== Ефект при звичайному ударі (ЛКМ) ====

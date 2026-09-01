@@ -1,34 +1,59 @@
 package com.crimsonmoon.world;
 
 import com.crimsonmoon.ModEntities;
+import com.crimsonmoon.ModItems;
 import com.crimsonmoon.entity.ThorncallerEntity;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.entity.Entity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.GameRules;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import net.minecraft.registry.tag.BiomeTags;
 
+/**
+ * Thorncaller существует в единственном экземпляре одновременно ("флажок" —
+ * {@link #activeThorncallerId}).
+ *
+ * Спавн: при входе хотя бы одного игрока в биом джунглей (если сейчас нет
+ * живого Thorncaller и не идёт кулдаун после недавней смерти).
+ * Деспавн: тихо (без дропа), если ни один игрок не находится в джунглях.
+ *
+ * После убийства — фиксированный кулдаун {@link #RESPAWN_COOLDOWN_TICKS}
+ * (10 минут), не зависящий от того, подобрал ли кто-то лут.
+ */
 public class ThorncallerSpawnManager {
 
-    private static final int CHECK_INTERVAL_TICKS = 45 * 20; // раз в 45 секунд проверяем шанс
-    private static final float SPAWN_CHANCE = 0.35f;
+    private static final int CHECK_INTERVAL_TICKS = 20; // раз в секунду проверяем присутствие в джунглях
+
+    private static final int RESPAWN_COOLDOWN_TICKS = 10 * 60 * 20; // 10 минут
 
     private static final double MIN_DISTANCE = 14.0;
     private static final double MAX_DISTANCE = 20.0;
-    private static final double OUT_OF_SIGHT_HALF_ANGLE = 100.0; // насколько широкий сектор "вне поля зрения" сзади/сбоку
+    private static final double OUT_OF_SIGHT_HALF_ANGLE = 100.0;
     private static final int MAX_PLACEMENT_ATTEMPTS = 16;
     private static final int VERTICAL_SEARCH_RANGE = 5;
 
-    private static final Map<UUID, Integer> timers = new HashMap<>();
+    private static final int LOOT_MIN = 1;
+    private static final int LOOT_MAX = 3;
+
+    private static int tickCounter = 0;
+
+    /** UUID живого Thorncaller в мире, либо null. */
+    private static UUID activeThorncallerId = null;
+
+    /** Тик мира (Overworld), начиная с которого разрешён следующий спавн. 0 = можно сразу. */
+    private static long spawnAllowedAfterTick = 0L;
 
     public static void register() {
         ServerTickEvents.END_SERVER_TICK.register(ThorncallerSpawnManager::onServerTick);
@@ -39,46 +64,103 @@ public class ThorncallerSpawnManager {
             return;
         }
 
+        tickCounter++;
+        if (tickCounter < CHECK_INTERVAL_TICKS) {
+            return;
+        }
+        tickCounter = 0;
+
+        if (activeThorncallerId == null) {
+            resyncActiveThorncaller(server);
+        }
+
+        List<ServerPlayerEntity> playersInJungle = new ArrayList<>();
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            UUID id = player.getUuid();
-            int ticks = timers.merge(id, 1, Integer::sum);
-
-            if (ticks < CHECK_INTERVAL_TICKS) {
-                continue;
+            if (isInJungle(player)) {
+                playersInJungle.add(player);
             }
-            timers.put(id, 0);
+        }
 
-            if (player.getRandom().nextFloat() >= SPAWN_CHANCE) {
-                continue;
-            }
+        if (activeThorncallerId != null && playersInJungle.isEmpty()) {
+            despawnActive(server);
+        }
 
-            trySpawn((ServerWorld) player.getWorld(), player);
+        if (activeThorncallerId == null && !playersInJungle.isEmpty()
+                && server.getOverworld().getTime() >= spawnAllowedAfterTick) {
+            ServerPlayerEntity chosen = playersInJungle.get(
+                server.getOverworld().getRandom().nextInt(playersInJungle.size()));
+            trySpawn((ServerWorld) chosen.getWorld(), chosen);
         }
     }
 
+    /** На случай, если сервер перезапустили, пока Thorncaller был жив — подхватываем его заново. */
+    private static void resyncActiveThorncaller(MinecraftServer server) {
+        for (ServerWorld world : server.getWorlds()) {
+            for (Entity entity : world.iterateEntities()) {
+                if (entity instanceof ThorncallerEntity thorncaller && thorncaller.isAlive()) {
+                    activeThorncallerId = thorncaller.getUuid();
+                    return;
+                }
+            }
+        }
+    }
+
+    private static boolean isInJungle(ServerPlayerEntity player) {
+        ServerWorld world = (ServerWorld) player.getWorld();
+        return world.getBiome(player.getBlockPos()).isIn(BiomeTags.IS_JUNGLE);
+    }
+
+    private static void despawnActive(MinecraftServer server) {
+        for (ServerWorld world : server.getWorlds()) {
+            Entity entity = world.getEntity(activeThorncallerId);
+            if (entity instanceof ThorncallerEntity thorncaller) {
+                thorncaller.discard(); // тихо убираем: это не смерть — лут не роняется, кулдаун не трогаем
+                break;
+            }
+        }
+        activeThorncallerId = null;
+    }
+
     private static void trySpawn(ServerWorld world, ServerPlayerEntity player) {
-    BlockPos pos = findOutOfSightPosition(world, player);
-    if (pos == null) {
-        return;
+        BlockPos pos = findOutOfSightPosition(world, player);
+        if (pos == null) {
+            return;
+        }
+
+        // Thorncaller — обитатель джунглей, спавним ТОЛЬКО в биомах джунглей
+        if (!world.getBiome(pos).isIn(BiomeTags.IS_JUNGLE)) {
+            return;
+        }
+
+        ThorncallerEntity thorncaller = ModEntities.THORNCALLER.create(world);
+        if (thorncaller == null) {
+            return;
+        }
+
+        thorncaller.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0f, 0.0f);
+        world.spawnEntity(thorncaller);
+
+        activeThorncallerId = thorncaller.getUuid();
     }
 
-    // Thorncaller — обитатель джунглей, спавним ТОЛЬКО в биомах джунглей
-    // (jungle / sparse_jungle / bamboo_jungle попадают в этот тег).
-    if (!world.getBiome(pos).isIn(BiomeTags.IS_JUNGLE)) {
-        return;
+    /** Вызывается из {@link ThorncallerEntity#onDeath}. */
+    public static void onThorncallerDied(ServerWorld world, ThorncallerEntity thorncaller) {
+        if (thorncaller.getUuid().equals(activeThorncallerId)) {
+            activeThorncallerId = null;
+        }
+
+        spawnAllowedAfterTick = world.getTime() + RESPAWN_COOLDOWN_TICKS;
+
+        // обычный дроп лута — без отдельного отслеживания подбора и без своего
+        // EntityType (используем стандартный ItemScatterer/ItemEntity, чтобы
+        // не остаться без зарегистрированного рендерера на клиенте)
+        int lootCount = LOOT_MIN + world.getRandom().nextInt(LOOT_MAX - LOOT_MIN + 1);
+        ItemStack lootStack = new ItemStack(ModItems.BLOOD_INGOT, lootCount);
+        ItemScatterer.spawn(world, thorncaller.getX(), thorncaller.getY() + 0.5, thorncaller.getZ(), lootStack);
     }
 
-    ThorncallerEntity thorncaller = ModEntities.THORNCALLER.create(world);
-    if (thorncaller == null) {
-        return;
-    }
+    // ==================== Поиск позиции для спавна (без изменений в логике) ====================
 
-    thorncaller.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0f, 0.0f);
-    world.spawnEntity(thorncaller);
-}
-
-    // Ищем точку, которая находится ВНЕ поля зрения игрока —
-    // то есть за пределами конуса перед ним (тот же принцип, что и у Watcher).
     private static BlockPos findOutOfSightPosition(ServerWorld world, ServerPlayerEntity player) {
         float playerYawRad = (float) Math.toRadians(MathHelper.wrapDegrees(player.getYaw()));
 
