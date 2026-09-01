@@ -19,23 +19,22 @@ import net.minecraft.potion.Potions;
 import net.minecraft.recipe.BrewingRecipeRegistry;
 import dev.emi.trinkets.api.TrinketsApi;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents; 
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents; 
-import net.minecraft.block.BlockState; 
-import net.minecraft.block.Blocks; 
-import net.minecraft.entity.effect.StatusEffectInstance; 
-import net.minecraft.entity.effect.StatusEffects; 
-import net.minecraft.particle.ParticleTypes; 
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory; 
-import net.minecraft.sound.SoundEvent; 
-import net.minecraft.sound.SoundEvents; 
-import net.minecraft.text.Text; 
-import net.minecraft.util.Formatting; 
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 
-// Импорты для структур
 import net.minecraft.structure.StructurePlacementData;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
@@ -47,44 +46,46 @@ public class CrimsonMoon implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        
-        // --- 1. БЕЗОПАСНЫЙ СПАВН СТРУКТУРЫ ПРИ ПЕРВОМ ЗАХОДЕ ---
+
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
             ServerWorld world = player.getServerWorld();
-            
-            // Проверяем, что это обычный мир, а игрок еще не видел структуру
+
             if (world.getRegistryKey() == net.minecraft.world.World.OVERWORLD) {
-                if (!player.getCommandTags().contains("monolit_spawned")) {
-                    player.addCommandTag("monolit_spawned");
-                    spawnMonolitNearPlayer(world, player.getBlockPos());
+                net.minecraft.scoreboard.Scoreboard sb = server.getScoreboard();
+                net.minecraft.scoreboard.ScoreboardObjective obj = sb.getNullableObjective("crimson_monolit");
+                if (obj == null) {
+                    obj = sb.addObjective(
+                        "crimson_monolit",
+                        net.minecraft.scoreboard.ScoreboardCriterion.DUMMY,
+                        net.minecraft.text.Text.literal("crimson_monolit"),
+                        net.minecraft.scoreboard.ScoreboardCriterion.RenderType.INTEGER
+                    );
+                }
+                net.minecraft.scoreboard.ScoreboardPlayerScore score = sb.getPlayerScore("#monolit", obj);
+
+                if (score.getScore() == 0) {
+                    spawnMonolitNearPlayer(world, player);
+                    score.setScore(1);
                 }
             }
         });
 
-        // --- 2. ОТСЛЕЖИВАНИЕ РАЗРУШЕНИЯ МОНОЛИТА ---
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
             if(!world.isClient() && state.isOf(ModBlocks.MONOLIT)) {
-                if (!player.getCommandTags().contains("cursed_player")){
-                    player.addCommandTag("cursed_player");
-                    
-                    // Надеваем ожерелье в слот шеи
-                    TrinketsApi.getTrinketComponent(player).ifPresent(trinkets -> {
-                        trinkets.getInventory().get("chest").get("necklace").setStack(0, new ItemStack(ModItems.BLOOD_NECKLACE));
-                    });
-                    
-                    ServerWorld serverWorld = (ServerWorld) world;
-                    serverWorld.setWeather(0, 6000, true, true);
-                    
-                    player.sendMessage(Text.literal("Прокляття спостерігача пробудилося!").formatted(Formatting.DARK_RED, Formatting.BOLD), true);
-                    
-                    world.playSound(null, pos, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.AMBIENT, 1.0f, 0.8f);
-                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 80, 0, false, false, true));
+                ServerWorld serverWorld = (ServerWorld) world;
+
+                for (ServerPlayerEntity target : serverWorld.getServer().getPlayerManager().getPlayerList()) {
+                    if (!target.getCommandTags().contains("cursed_player")) {
+                        applyCurse(target);
+                    }
                 }
+
+                serverWorld.setWeather(0, 6000, true, true);
+                world.playSound(null, pos, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.AMBIENT, 1.0f, 0.8f);
             }
         });
 
-        // --- 3. ЭФФЕКТЫ ПРОКЛЯТИЯ И БОСС ---
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             boolean isWorldCursed = false;
 
@@ -92,8 +93,7 @@ public class CrimsonMoon implements ModInitializer {
                 if (player.getCommandTags().contains("cursed_player")) {
                     isWorldCursed = true;
                     ServerWorld serverWorld = player.getServerWorld();
-                    
-                    // Случайные жуткие звуки
+
                     if (serverWorld.random.nextInt(400) == 0) {
                         SoundEvent[] soundEvent = {
                             SoundEvents.ENTITY_CREEPER_PRIMED,
@@ -104,7 +104,6 @@ public class CrimsonMoon implements ModInitializer {
                         player.playSound(randomSound, SoundCategory.HOSTILE, 1.0f, 1.0f);
                     }
 
-                    // Потухание факелов
                     if (serverWorld.random.nextInt(20) == 0){
                         BlockPos playerPos = player.getBlockPos();
                         int radius = 4;
@@ -113,9 +112,9 @@ public class CrimsonMoon implements ModInitializer {
                             serverWorld.random.nextInt(radius * 2 ) - radius,
                             serverWorld.random.nextInt(radius * 2 ) - radius
                         );
-                        
+
                         BlockState targetState = serverWorld.getBlockState(targetPos);
-                        
+
                         if(targetState.isOf(Blocks.TORCH) || targetState.isOf(Blocks.WALL_TORCH)){
                             serverWorld.breakBlock(targetPos, false);
                             serverWorld.playSound(null, targetPos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1.0f, 1.0f);
@@ -123,8 +122,7 @@ public class CrimsonMoon implements ModInitializer {
                         }
                     }
 
-                    // Шанс спавна босса Nightmare в пещерах
-                    if (serverWorld.random.nextInt(1500) == 0) { 
+                    if (serverWorld.random.nextInt(1500) == 0) {
                         BlockPos cavePos = findSpaciousCave(serverWorld, player.getBlockPos(), 20);
                         if (cavePos != null) {
                             NightmareEntity nightmare = ModEntities.NIGHTMARE.create(serverWorld);
@@ -138,6 +136,14 @@ public class CrimsonMoon implements ModInitializer {
             }
 
             if (isWorldCursed) {
+                for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                    if (!player.getCommandTags().contains("cursed_player")) {
+                        applyCurse(player);
+                    }
+                }
+            }
+
+            if (isWorldCursed) {
                 ServerWorld overworld = server.getWorld(net.minecraft.world.World.OVERWORLD);
                 if (overworld != null && !overworld.isRaining()) {
                     overworld.setWeather(0, 1000000, true, true);
@@ -145,7 +151,6 @@ public class CrimsonMoon implements ModInitializer {
             }
         });
 
-        // Регистрация всего остального
         ModItemGroups.registerItemGroups();
         ModSounds.register();
         ModBlocks.registerModBlocks();
@@ -154,7 +159,7 @@ public class CrimsonMoon implements ModInitializer {
         com.crimsonmoon.world.WatcherManager.register();
         ThorncallerSpawnManager.register();
         NoDropRegistry.protect(ModItems.BLOOD_MONOLIT);
-        
+
         ThorncallerEntity.MINION_TYPE = ModEntities.BLOODWALKER;
 
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
@@ -174,79 +179,154 @@ public class CrimsonMoon implements ModInitializer {
         BrewingRecipeRegistry.registerPotionRecipe(Potions.REGENERATION, ModItems.BLOOD_INGOT, ModPotions.HEROIC_POTION);
     }
 
-    // --- ЛОГИКА УМНОГО ПОИСКА МЕСТА ДЛЯ СТРУКТУРЫ ---
-    private static void spawnMonolitNearPlayer(ServerWorld world, BlockPos playerPos) {
-        BlockPos spawnPos = null;
-        
-        // Делаем до 150 попыток
-        for (int i = 0; i < 150; i++) {
-            // Ищем точку в радиусе от 15 до 40 блоков от игрока
-            int dx = (world.random.nextInt(26) + 15) * (world.random.nextBoolean() ? 1 : -1);
-            int dz = (world.random.nextInt(26) + 15) * (world.random.nextBoolean() ? 1 : -1);
-            
-            int x = playerPos.getX() + dx;
-            int z = playerPos.getZ() + dz;
-            
-            // Находим самый верхний блок
-            int y = world.getTopY(Heightmap.Type.WORLD_SURFACE, x, z);
-            BlockPos checkPos = new BlockPos(x, y, z);
-            BlockState stateBelow = world.getBlockState(checkPos.down());
-            
-            // 1. Проверяем, чтобы фундамент был природным
-            boolean isNaturalGround = stateBelow.isOf(Blocks.GRASS_BLOCK) || 
-                                      stateBelow.isOf(Blocks.DIRT) || 
-                                      stateBelow.isOf(Blocks.STONE) || 
-                                      stateBelow.isOf(Blocks.SAND) || 
-                                      stateBelow.isOf(Blocks.PODZOL) || 
-                                      stateBelow.isOf(Blocks.SNOW_BLOCK);
+    private static void applyCurse(ServerPlayerEntity target) {
+        target.addCommandTag("cursed_player");
 
-            if (isNaturalGround) {
-                // 2. Сканируем пространство над землей
-                boolean isClear = true;
-                
-                for (int checkX = -2; checkX <= 2; checkX++) {
-                    for (int checkY = 0; checkY <= 5; checkY++) {
-                        for (int checkZ = -2; checkZ <= 2; checkZ++) {
-                            BlockPos airCheckPos = checkPos.add(checkX, checkY, checkZ);
-                            BlockState airState = world.getBlockState(airCheckPos);
-                            
-                            if (!airState.isAir() && !airState.isReplaceable()) {
-                                isClear = false;
-                                break;
-                            }
+        TrinketsApi.getTrinketComponent(target).ifPresent(trinkets -> {
+            trinkets.getInventory().get("chest").get("necklace").setStack(0, new ItemStack(ModItems.BLOOD_NECKLACE));
+        });
+
+        target.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 80, 0, false, false, true));
+        target.sendMessage(Text.literal("Прокляття спостерігача пробудилося!").formatted(Formatting.DARK_RED, Formatting.BOLD), true);
+    }
+
+    private static void spawnMonolitNearPlayer(ServerWorld world, ServerPlayerEntity player) {
+        BlockPos playerPos = player.getBlockPos();
+        Identifier structureId = new Identifier(MOD_ID, "crimsonmoon");
+
+        var templateOpt = world.getStructureTemplateManager().getTemplate(structureId);
+        if (templateOpt.isEmpty()) {
+            return;
+        }
+        net.minecraft.structure.StructureTemplate template = templateOpt.get();
+
+        net.minecraft.util.math.Vec3i size = template.getSize();
+        int sizeX = Math.max(1, size.getX());
+        int sizeZ = Math.max(1, size.getZ());
+
+        final int STEP = 2;
+        final int RING_WIDTH = 60;
+        final int MAX_DIST = 1000;
+        final int TRIES_PER_RING = 250;
+        final int GOOD_ENOUGH = 2;
+
+        BlockPos landOrigin = null;
+        int landGroundY = 0;
+        int landFlatness = Integer.MAX_VALUE;
+
+        BlockPos anyOrigin = null;
+        int anyGroundY = 0;
+
+        int minDist = 20;
+        while (minDist < MAX_DIST) {
+            int maxDist = Math.min(minDist + RING_WIDTH, MAX_DIST);
+
+            for (int attempt = 0; attempt < TRIES_PER_RING; attempt++) {
+                int dist = minDist + world.random.nextInt(maxDist - minDist + 1);
+                double angle = world.random.nextDouble() * Math.PI * 2.0;
+                int ox = playerPos.getX() + (int) (Math.cos(angle) * dist);
+                int oz = playerPos.getZ() + (int) (Math.sin(angle) * dist);
+
+                int minY = Integer.MAX_VALUE;
+                int maxY = Integer.MIN_VALUE;
+                boolean allLand = true;
+
+                for (int lx = 0; lx <= sizeX; lx += STEP) {
+                    for (int lz = 0; lz <= sizeZ; lz += STEP) {
+                        int wx = ox + lx;
+                        int wz = oz + lz;
+
+                        int y = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, wx, wz);
+                        BlockState ground = world.getBlockState(new BlockPos(wx, y - 1, wz));
+
+                        boolean natural = ground.isOf(Blocks.GRASS_BLOCK) || ground.isOf(Blocks.DIRT)
+                            || ground.isOf(Blocks.STONE) || ground.isOf(Blocks.SAND)
+                            || ground.isOf(Blocks.PODZOL) || ground.isOf(Blocks.SNOW_BLOCK)
+                            || ground.isOf(Blocks.GRAVEL) || ground.isOf(Blocks.COARSE_DIRT)
+                            || ground.isOf(Blocks.MOSS_BLOCK) || ground.isOf(Blocks.MYCELIUM)
+                            || ground.isOf(Blocks.ROOTED_DIRT) || ground.isOf(Blocks.CLAY)
+                            || ground.isOf(Blocks.SANDSTONE) || ground.isOf(Blocks.TERRACOTTA);
+
+                        if (!ground.getFluidState().isEmpty() || !natural) {
+                            allLand = false;
                         }
-                        if (!isClear) break;
+
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
                     }
-                    if (!isClear) break;
                 }
-                
-                if (isClear) {
-                    spawnPos = checkPos;
-                    break;
+
+                if (anyOrigin == null) {
+                    anyOrigin = new BlockPos(ox, minY, oz);
+                    anyGroundY = minY;
+                }
+
+                if (!allLand) continue;
+
+                int flatness = maxY - minY;
+                if (flatness < landFlatness) {
+                    landFlatness = flatness;
+                    landOrigin = new BlockPos(ox, minY, oz);
+                    landGroundY = minY;
+                }
+
+                if (flatness <= GOOD_ENOUGH) {
+                    placeMonolit(world, template, landOrigin, landGroundY);
+                    return;
+                }
+            }
+
+            minDist = maxDist;
+        }
+
+        if (landOrigin != null) {
+            placeMonolit(world, template, landOrigin, landGroundY);
+            return;
+        }
+
+        BlockPos fallback = (anyOrigin != null)
+            ? anyOrigin
+            : new BlockPos(playerPos.getX() + 40, world.getSeaLevel(), playerPos.getZ());
+        int platformY = (anyOrigin != null) ? anyGroundY : world.getSeaLevel();
+
+        buildPlatform(world, fallback, platformY, sizeX, sizeZ);
+        placeMonolit(world, template, fallback, platformY);
+    }
+
+    private static void buildPlatform(ServerWorld world, BlockPos origin, int groundY, int sizeX, int sizeZ) {
+        int margin = 2;
+        for (int lx = -margin; lx <= sizeX + margin; lx++) {
+            for (int lz = -margin; lz <= sizeZ + margin; lz++) {
+                int wx = origin.getX() + lx;
+                int wz = origin.getZ() + lz;
+
+                world.setBlockState(new BlockPos(wx, groundY - 1, wz), Blocks.STONE.getDefaultState());
+                world.setBlockState(new BlockPos(wx, groundY - 2, wz), Blocks.STONE.getDefaultState());
+                world.setBlockState(new BlockPos(wx, groundY - 3, wz), Blocks.STONE.getDefaultState());
+
+                for (int up = 0; up < 6; up++) {
+                    BlockPos clear = new BlockPos(wx, groundY + up, wz);
+                    if (!world.getBlockState(clear).getFluidState().isEmpty()) {
+                        world.setBlockState(clear, Blocks.AIR.getDefaultState());
+                    }
                 }
             }
         }
-
-        // Если нашли поляну, ставим структуру
-        if (spawnPos != null) {
-            Identifier structureId = new Identifier(MOD_ID, "crimsonmoon");
-            
-            // ВОТ ТУТ ИСПРАВЛЕНИЕ: Опускаем позицию установки на 1 блок вниз, чтобы врасти в землю
-            BlockPos finalSpawnPos = spawnPos.down(1);
-            
-            world.getStructureTemplateManager().getTemplate(structureId).ifPresent(template -> {
-                StructurePlacementData placementData = new StructurePlacementData()
-                    .setRotation(BlockRotation.NONE)
-                    .setMirror(BlockMirror.NONE)
-                    .setIgnoreEntities(false);
-                
-                // Ставим NBT-структуру в мир
-                template.place(world, finalSpawnPos, finalSpawnPos, placementData, world.random, 2);
-            });
-        }
     }
 
-    // Вспомогательный метод: поиск просторной пещеры под землей для босса
+    private static void placeMonolit(ServerWorld world,
+            net.minecraft.structure.StructureTemplate template,
+            BlockPos origin, int groundY) {
+        BlockPos finalSpawnPos = new BlockPos(origin.getX(), groundY - 1, origin.getZ());
+
+        StructurePlacementData placementData = new StructurePlacementData()
+            .setRotation(BlockRotation.NONE)
+            .setMirror(BlockMirror.NONE)
+            .setIgnoreEntities(false);
+
+        template.place(world, finalSpawnPos, finalSpawnPos, placementData, world.random, 2);
+    }
+
     private static BlockPos findSpaciousCave(ServerWorld world, BlockPos center, int radius) {
         for (int i = 0; i < 40; i++) {
             BlockPos checkPos = center.add(
