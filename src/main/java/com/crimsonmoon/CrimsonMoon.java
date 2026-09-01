@@ -64,6 +64,11 @@ public class CrimsonMoon implements ModInitializer {
 			
 		});
 
+		// в боссарене ломать блоки нельзя никому и никак
+		PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->
+			!world.getRegistryKey().equals(ModDimensions.BOSS_REALM)
+		);
+
 		// ефекти при отриманні прокляття
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
@@ -125,6 +130,9 @@ public class CrimsonMoon implements ModInitializer {
 
 		com.crimsonmoon.world.WatcherManager.register();
 		ThorncallerSpawnManager.register();
+		BossArenaCommand.register();
+		com.crimsonmoon.world.MonsterikBossManager.register();
+		MonsterikBossCommand.register();
 
 		NoDropRegistry.protect(ModItems.BLOOD_INGOT);
 
