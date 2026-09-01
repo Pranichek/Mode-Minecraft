@@ -1,6 +1,7 @@
 package com.crimsonmoon;
 
 import com.crimsonmoon.entity.BloodwalkerEntity;
+import com.crimsonmoon.entity.MonsterikEntity;
 import com.crimsonmoon.entity.NightmareEntity;
 import com.crimsonmoon.entity.ThorncallerEntity;
 import com.crimsonmoon.entity.WatcherEntity;
@@ -29,9 +30,13 @@ import java.util.UUID;
  * Заполнение НАМЕРЕННО медленное (в очках/тик, а не мгновенное "%
  * от дистанции", как было раньше) и требует реальной угрозы:
  *  - поблизости (в радиусе {@link #FEAR_SOURCE_RADIUS}) есть один из пугающих
- *    мобов мода (Thorncaller, Bloodwalker, Nightmare, Watcher) — чем ближе, тем
- *    быстрее растёт страх;
- *  - и/или игрок стоит в темноте.
+ *    мобов мода (Thorncaller, Bloodwalker, Nightmare, Watcher, Monsterik) —
+ *    чем ближе, тем быстрее растёт страх;
+ *  - и/или игрок стоит в темноте;
+ *  - и/или игрок находится на боссарене ({@code ModDimensions.BOSS_REALM}) —
+ *    там страх копится гарантированно быстро (см. {@code ARENA_FEAR_GAIN_PER_TICK}),
+ *    независимо от прочих условий, иначе способностям посоха/булавы там
+ *    попросту нечем питаться.
  * Когда угроз нет, шкала медленно затухает сама.
  *
  * Реальное значение синхронизируется на клиент по сети (см. {@link #SYNC_CHANNEL}
@@ -56,6 +61,11 @@ public class FearManager {
     private static final float PROXIMITY_GAIN_PER_TICK = 0.22f; // на минимальной дистанции до источника
     private static final float DARKNESS_GAIN_PER_TICK = 0.05f;
     private static final float SAFE_DECAY_PER_TICK = 0.02f;
+
+    // На боссарене страх копится гарантированно и быстро (сам факт нахождения
+    // на арене — уже угроза), независимо от дистанции до Monsterik и уровня
+    // освещения — иначе способности посоха/булавы там банально нечем питать.
+    private static final float ARENA_FEAR_GAIN_PER_TICK = 2.0f;
 
     private static final Map<UUID, Float> fear = new HashMap<>();
 
@@ -105,6 +115,7 @@ public class FearManager {
         double closest = closestFearSourceDistance(player);
         boolean inDarkness = world.getLightLevel(LightType.BLOCK, player.getBlockPos()) <= DARK_LIGHT_THRESHOLD
             && world.getLightLevel(LightType.SKY, player.getBlockPos()) <= DARK_LIGHT_THRESHOLD;
+        boolean onBossArena = world.getRegistryKey() == com.crimsonmoon.ModDimensions.BOSS_REALM;
 
         float gain = 0.0f;
         if (closest <= FEAR_SOURCE_RADIUS) {
@@ -113,6 +124,9 @@ public class FearManager {
         }
         if (inDarkness) {
             gain += DARKNESS_GAIN_PER_TICK;
+        }
+        if (onBossArena) {
+            gain += ARENA_FEAR_GAIN_PER_TICK;
         }
 
         if (gain > 0.0f) {
@@ -152,6 +166,7 @@ public class FearManager {
         return entity instanceof ThorncallerEntity
             || entity instanceof BloodwalkerEntity
             || entity instanceof NightmareEntity
-            || entity instanceof WatcherEntity;
+            || entity instanceof WatcherEntity
+            || entity instanceof MonsterikEntity;
     }
 }

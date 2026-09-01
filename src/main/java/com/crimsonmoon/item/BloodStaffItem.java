@@ -64,7 +64,19 @@ public class BloodStaffItem extends Item {
             if (time < getReadyTick(stack, NBT_SLAM_READY_TICK)) {
                 return TypedActionResult.pass(stack);
             }
-            if (!world.isClient && !FearManager.consume(user, SLAM_FEAR_COST)) {
+            if (world.isClient) {
+                // На клиенте нет доступа к реальному значению FearManager —
+                // используем известное по синхронизации HUD-значение, чтобы
+                // НЕ проигрывать замах/не ставить кулдаун, если сервер точно
+                // откажет. Раньше здесь проверка полностью пропускалась
+                // (world.isClient делал левую часть && ложной), из-за чего
+                // способность выглядела так, будто она сработала, хотя на
+                // самом деле сервер её отклонял, — страх при этом не тратился,
+                // а кулдаун всё равно включался.
+                if (!hasEnoughFearClientSide(user, SLAM_FEAR_COST)) {
+                    return TypedActionResult.fail(stack);
+                }
+            } else if (!FearManager.consume(user, SLAM_FEAR_COST)) {
                 notifyNotEnoughFear(user);
                 return TypedActionResult.fail(stack);
             }
@@ -74,7 +86,11 @@ public class BloodStaffItem extends Item {
             if (time < getReadyTick(stack, NBT_BOLT_READY_TICK)) {
                 return TypedActionResult.pass(stack);
             }
-            if (!world.isClient && !FearManager.consume(user, BOLT_FEAR_COST)) {
+            if (world.isClient) {
+                if (!hasEnoughFearClientSide(user, BOLT_FEAR_COST)) {
+                    return TypedActionResult.fail(stack);
+                }
+            } else if (!FearManager.consume(user, BOLT_FEAR_COST)) {
                 notifyNotEnoughFear(user);
                 return TypedActionResult.fail(stack);
             }
@@ -84,6 +100,21 @@ public class BloodStaffItem extends Item {
 
         user.swingHand(hand);
         return TypedActionResult.success(stack, world.isClient());
+    }
+
+    /**
+     * Клиентское предсказание нехватки страха — используем последнее значение,
+     * присланное сервером для HUD ({@code FearHudOverlay.currentFear}), чтобы
+     * заранее (без круговой задержки на сервер и обратно) не проигрывать
+     * замах и не выставлять кулдаун предмета, если сервер всё равно откажет.
+     * Реальная трата (и финальная проверка) остаётся только на сервере —
+     * см. {@link FearManager#consume}.
+     */
+    private static boolean hasEnoughFearClientSide(PlayerEntity user, float amount) {
+        if (user.isCreative() || user.isSpectator()) {
+            return true;
+        }
+        return com.crimsonmoon.client.gui.FearHudOverlay.currentFear + 1.0e-4f >= amount;
     }
 
     /** Недостаточно "заряда" страха для каста — сообщаем игроку вместо тихого отказа. */

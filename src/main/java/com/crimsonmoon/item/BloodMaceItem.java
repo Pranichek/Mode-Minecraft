@@ -75,12 +75,31 @@ public class BloodMaceItem extends SwordItem {
             notifyNotEnoughFear(user);
             return TypedActionResult.fail(stack);
         }
+        if (world.isClient && !hasEnoughFearClientSide(user, SHOCKWAVE_FEAR_COST)) {
+            // Раньше эта проверка на клиенте не выполнялась вообще (условие
+            // "!world.isClient && ..." всегда ложно на клиенте), из-за чего
+            // замах и кулдаун ставились, даже когда сервер отказывал —
+            // визуально способность как будто срабатывала, а по факту нет.
+            return TypedActionResult.fail(stack);
+        }
 
         shockwave(world, user);
         user.getItemCooldownManager().set(this, SHOCKWAVE_COOLDOWN_TICKS);
         user.swingHand(hand);
 
         return TypedActionResult.success(stack, world.isClient());
+    }
+
+    /**
+     * Клиентское предсказание нехватки страха — см. подробное объяснение
+     * в {@code BloodStaffItem.hasEnoughFearClientSide}. Реальная трата
+     * происходит только на сервере, в {@link FearManager#consume}.
+     */
+    private static boolean hasEnoughFearClientSide(PlayerEntity user, float amount) {
+        if (user.isCreative() || user.isSpectator()) {
+            return true;
+        }
+        return com.crimsonmoon.client.gui.FearHudOverlay.currentFear + 1.0e-4f >= amount;
     }
 
     /** Недостатньо "заряду" страху для каста — повідомляємо гравця замість тихої відмови. */
