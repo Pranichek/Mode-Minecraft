@@ -13,6 +13,7 @@ import com.crimsonmoon.item.NoDropRegistry;
 import com.crimsonmoon.item.PendingItemStash;
 import com.crimsonmoon.world.ModWorldGen;
 import com.crimsonmoon.world.ThorncallerSpawnManager;
+import com.crimsonmoon.world.CrimsonMoonWorldState; // ДОБАВЛЕН ИМПОРТ СОСТОЯНИЯ
 import com.crimsonmoon.entity.ThorncallerEntity;
 import com.crimsonmoon.entity.NightmareEntity;
 import net.minecraft.potion.Potions;
@@ -125,17 +126,6 @@ public class CrimsonMoon implements ModInitializer {
                             serverWorld.spawnParticles(ParticleTypes.SMOKE, targetPos.getX() + 0.5, targetPos.getY() + 0.5, targetPos.getZ() + 0.5, 10, 0.1, 0.1, 0.1, 0.02);
                         }
                     }
-
-                    if (serverWorld.random.nextInt(1500) == 0) {
-                        BlockPos cavePos = findSpaciousCave(serverWorld, player.getBlockPos(), 20);
-                        if (cavePos != null) {
-                            NightmareEntity nightmare = ModEntities.NIGHTMARE.create(serverWorld);
-                            if (nightmare != null) {
-                                nightmare.refreshPositionAndAngles(cavePos.getX() + 0.5, cavePos.getY(), cavePos.getZ() + 0.5, serverWorld.random.nextFloat() * 360F, 0.0F);
-                                serverWorld.spawnEntity(nightmare);
-                            }
-                        }
-                    }
                 }
             }
 
@@ -153,6 +143,33 @@ public class CrimsonMoon implements ModInitializer {
                     overworld.setWeather(0, 1000000, true, true);
                 }
             }
+
+            // --- Глобальная логика одноразового спавна босса ---
+            if (server.getTicks() % 100 == 0) {
+                CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(server);
+
+                if (state.isCurseActive && !state.nightmareSpawned && !state.nightmareDefeated) {
+                    for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+                        if (p.getY() < 55 && p.getCommandTags().contains("cursed_player")) {
+                            ServerWorld sWorld = p.getServerWorld();
+                            BlockPos cavePos = findSpaciousCave(sWorld, p.getBlockPos(), 20);
+
+                            if (cavePos != null) {
+                                NightmareEntity nightmare = ModEntities.NIGHTMARE.create(sWorld);
+                                if (nightmare != null) {
+                                    nightmare.refreshPositionAndAngles(cavePos.getX() + 0.5, cavePos.getY(), cavePos.getZ() + 0.5, sWorld.random.nextFloat() * 360F, 0.0F);
+                                    sWorld.spawnEntity(nightmare);
+
+                                    state.nightmareSpawned = true;
+                                    state.markDirty();
+                                    break; // только один босс
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // ---------------------------------------------------
         });
 
         ModItemGroups.registerItemGroups();
@@ -190,6 +207,14 @@ public class CrimsonMoon implements ModInitializer {
 
     private static void applyCurse(ServerPlayerEntity target) {
         target.addCommandTag("cursed_player");
+
+        if (target.getServer() != null) {
+            CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(target.getServer());
+            if (!state.isCurseActive) {
+                state.isCurseActive = true;
+                state.markDirty();
+            }
+        }
 
         TrinketsApi.getTrinketComponent(target).ifPresent(trinkets -> {
             trinkets.getInventory().get("chest").get("necklace").setStack(0, new ItemStack(ModItems.BLOOD_NECKLACE));
@@ -337,29 +362,36 @@ public class CrimsonMoon implements ModInitializer {
     }
 
     private static BlockPos findSpaciousCave(ServerWorld world, BlockPos center, int radius) {
-        for (int i = 0; i < 40; i++) {
+        // 1) Ищем готовое место: твёрдый пол + 2 клетки воздуха
+        for (int i = 0; i < 80; i++) {
             BlockPos checkPos = center.add(
                 world.random.nextInt(radius * 2) - radius,
-                world.random.nextInt(30) - 15,
+                world.random.nextInt(16) - 8,
                 world.random.nextInt(radius * 2) - radius
             );
+            if (checkPos.isWithinDistance(center, 3.0)) continue;
 
-            if (checkPos.getY() < 50 && world.getBlockState(checkPos.down()).isSolidBlock(world, checkPos.down())) {
-                boolean hasSpace = true;
-                for (int x = -1; x <= 1; x++) {
-                    for (int y = 0; y <= 2; y++) {
-                        for (int z = -1; z <= 1; z++) {
-                            if (!world.getBlockState(checkPos.add(x, y, z)).isAir()) {
-                                hasSpace = false;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (hasSpace) return checkPos;
+            BlockPos floor = checkPos.down();
+            if (world.getBlockState(floor).isSolidBlock(world, floor)
+                    && world.getBlockState(checkPos).isAir()
+                    && world.getBlockState(checkPos.up()).isAir()) {
+                return checkPos;
             }
         }
-        return null;
+
+        // 2) Готового не нашлось — берём точку рядом с игроком и ВЫКАПЫВАЕМ место под босса.
+        //    Босс всё равно сам расчищает вокруг себя (freeSpaceAround), так что появится нормально.
+        int dx = world.random.nextInt(7) - 3; // 3 блока в сторону
+        int dz = world.random.nextInt(7) - 3;
+        BlockPos spot = center.add(dx, 0, dz);
+
+        world.setBlockState(spot, Blocks.AIR.getDefaultState());
+        world.setBlockState(spot.up(), Blocks.AIR.getDefaultState());
+        BlockPos floor = spot.down();
+        if (!world.getBlockState(floor).isSolidBlock(world, floor)) {
+            world.setBlockState(floor, Blocks.STONE.getDefaultState());
+        }
+        return spot;
     }
 
     public static Identifier id(String path) {

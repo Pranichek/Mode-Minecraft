@@ -38,7 +38,6 @@ import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.Identifier;
 
 public class CrimsonMoonClient implements ClientModInitializer {
 

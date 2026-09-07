@@ -19,6 +19,11 @@ repositories {
         name = "LadysnakeMods"
         url = "https://maven.ladysnake.org/releases"
     }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content { includeGroup "maven.modrinth" }
+    }
 }
 
 dependencies {
@@ -37,10 +42,14 @@ dependencies {
 
 	// Trinkets API
     modImplementation "dev.emi:trinkets:3.7.2"
-    
+
     // Cardinal Components (нужен для работы Trinkets)
     modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.2.2"
     modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:5.2.2"
+
+    // Disable Custom Worlds Advice — убирает окно "Experimental Features".
+    // Без include: грузится в дев-среде для тестов. Для релиза оформим отдельно.
+    modImplementation "maven.modrinth:dcwa:4.1"
 }
 
 processResources {
@@ -95,7 +104,7 @@ publishing {
 			name = "GeckoLib"
 			url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
 		}
-		
+
 		// Ссылки для Trinkets и Cardinal Components
 		maven {
 			name = "TerraformersMC"
