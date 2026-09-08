@@ -7,6 +7,7 @@ import com.crimsonmoon.entity.ThorncallerEntity;
 import com.crimsonmoon.entity.BloodBoltEntity;
 import com.crimsonmoon.entity.BloodClotEntity;
 import com.crimsonmoon.entity.MonsterikEntity;
+import com.crimsonmoon.entity.BoxerEntity;
 
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
@@ -80,11 +81,21 @@ public class ModEntities {
             .build()
     );
 
+    public static final EntityType<BoxerEntity> BOXER = Registry.register(
+        Registries.ENTITY_TYPE,
+        CrimsonMoon.id("boxer"),
+        FabricEntityTypeBuilder.create(SpawnGroup.MISC, BoxerEntity::new)
+            .dimensions(EntityDimensions.fixed(1.4f, 3.0f))
+            .trackRangeBlocks(64)
+            .build()
+    );
+
     public static void registerModEntities() {
         FabricDefaultAttributeRegistry.register(BLOODWALKER, BloodwalkerEntity.createBloodwalkerAttributes());
         FabricDefaultAttributeRegistry.register(WATCHER, WatcherEntity.createWatcherAttributes());
         FabricDefaultAttributeRegistry.register(NIGHTMARE, NightmareEntity.createNightmareAttributes());
         FabricDefaultAttributeRegistry.register(THORNCALLER, ThorncallerEntity.createThorncallerAttributes());
         FabricDefaultAttributeRegistry.register(MONSTERIK, MonsterikEntity.createMonsterikAttributes());
+        FabricDefaultAttributeRegistry.register(BOXER, BoxerEntity.createBoxerAttributes());
     }
 }

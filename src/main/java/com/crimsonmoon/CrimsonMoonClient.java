@@ -9,6 +9,7 @@ import com.crimsonmoon.client.render.BloodBoltEntityRenderer;
 import com.crimsonmoon.client.render.BloodClotEntityRenderer;
 import com.crimsonmoon.mixin.GameRendererInvoker;
 import com.crimsonmoon.client.render.MonsterikEntityRenderer;
+import com.crimsonmoon.client.render.BoxerEntityRenderer;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -54,6 +55,7 @@ public class CrimsonMoonClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.BLOOD_BOLT, BloodBoltEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.BLOOD_CLOT, BloodClotEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.MONSTERIK, MonsterikEntityRenderer::new);
+        EntityRendererRegistry.register(ModEntities.BOXER, BoxerEntityRenderer::new);
 
         HudRenderCallback.EVENT.register(new FearHudOverlay());
         FearHudOverlay.register();

@@ -42,7 +42,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 /**
  * Nightmare — босс-сущность.
  * Постоянно преследует проклятого игрока, внезапно появляется за спиной,
- * не исчезает после смерти игрока, сам выкапывается из блоков и не задыхается.
+ * не исчезает после смерти игрока, не задыхается и выкапывается ТОЛЬКО
+ * если реально замурован в блоках (а не при каждом касании стены).
  */
 public class NightmareEntity extends HostileEntity implements GeoEntity {
 
@@ -50,7 +51,7 @@ public class NightmareEntity extends HostileEntity implements GeoEntity {
     private boolean wasChasingTarget = false;
 
     private int appearCooldown = 200; // таймер до следующего появления за спиной
-    private int digCooldown = 0;      // таймер проверки «застрял в блоках»
+    private int digCooldown = 0;      // таймер проверки «замурован в блоках»
 
     private final ServerBossBar bossBar = (ServerBossBar) new ServerBossBar(
             this.getDisplayName(),
@@ -69,14 +70,14 @@ public class NightmareEntity extends HostileEntity implements GeoEntity {
         return false; // никогда не деспавнится сам по себе
     }
 
-        @Override
-        public boolean isInvulnerableTo(DamageSource damageSource) {
-            // Босс не задыхается/не гибнет от застревания в блоках
-            if (damageSource.isOf(DamageTypes.IN_WALL)) {
-                return true;
-            }
-            return super.isInvulnerableTo(damageSource);
+    @Override
+    public boolean isInvulnerableTo(DamageSource damageSource) {
+        // Босс не задыхается/не гибнет от застревания в блоках
+        if (damageSource.isOf(DamageTypes.IN_WALL)) {
+            return true;
         }
+        return super.isInvulnerableTo(damageSource);
+    }
 
     public static DefaultAttributeContainer.Builder createNightmareAttributes() {
         return HostileEntity.createHostileAttributes()
@@ -135,9 +136,9 @@ public class NightmareEntity extends HostileEntity implements GeoEntity {
 
         ServerWorld world = (ServerWorld) this.getWorld();
 
-        // Освобождаем место вокруг, чтобы босс не застревал/не задыхался в блоках
+        // Выкапываемся, только если реально замурованы в блоках
         if (--this.digCooldown <= 0) {
-            this.digCooldown = 2; // проверяем почти каждый тик — мгновенно выбирается
+            this.digCooldown = 2; // проверяем почти каждый тик
             freeSpaceAround(world);
         }
 
@@ -207,26 +208,16 @@ public class NightmareEntity extends HostileEntity implements GeoEntity {
         }
     }
 
-    /** Ломает мешающие блоки вокруг босса, чтобы он не застревал и не задыхался. */
+    /** Расчищает место, ТОЛЬКО если босс реально замурован (блоки в клетке ног и/или головы). */
     private void freeSpaceAround(ServerWorld world) {
         BlockPos feet = this.getBlockPos();
 
-        // Проверяем, зажат ли босс: есть ли твёрдый блок на уровне тела или головы
-        boolean stuck = false;
-        outer:
-        for (int y = 0; y <= 1; y++) {
-            for (int x = -1; x <= 1; x++) {
-                for (int z = -1; z <= 1; z++) {
-                    BlockPos p = feet.add(x, y, z);
-                    if (!world.getBlockState(p).isAir()
-                            && world.getBlockState(p).getFluidState().isEmpty()) {
-                        stuck = true;
-                        break outer;
-                    }
-                }
-            }
-        }
-        if (!stuck) return; // вокруг и так свободно — ничего не делаем
+        // Замурован по-настоящему только если блоки прямо в клетке ног ИЛИ головы
+        BlockState atFeet = world.getBlockState(feet);
+        BlockState atHead = world.getBlockState(feet.up());
+        boolean buriedFeet = !atFeet.isAir() && atFeet.getFluidState().isEmpty();
+        boolean buriedHead = !atHead.isAir() && atHead.getFluidState().isEmpty();
+        if (!buriedFeet && !buriedHead) return; // хотя бы одна клетка свободна — не копаем
 
         // Освобождаем коробку 3×3 в ширину и 3 блока в высоту
         for (int y = 0; y <= 2; y++) {
