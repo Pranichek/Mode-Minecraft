@@ -182,6 +182,7 @@ public class CrimsonMoon implements ModInitializer {
         NoDropRegistry.protect(ModItems.BLOOD_MONOLIT);
 
         BossArenaCommand.register();
+        com.crimsonmoon.world.BoxerColosseumManager.register();
         com.crimsonmoon.world.MonsterikBossManager.register();
         MonsterikBossCommand.register();
         FearManager.register();

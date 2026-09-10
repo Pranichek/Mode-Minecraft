@@ -3,6 +3,7 @@ package com.crimsonmoon.entity;
 import java.util.UUID;
 
 import com.crimsonmoon.ModSounds;
+import com.crimsonmoon.world.CrimsonMoonWorldState; // ДОБАВЛЕН ИМПОРТ СОСТОЯНИЯ
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
@@ -19,8 +20,8 @@ import net.minecraft.world.World;
 
 public class WatcherEntity extends PathAwareEntity {
 
-    private static final int LIFETIME_TICKS = 600;       // 30 секунд — можно менять
-    private static final double DESPAWN_DISTANCE = 6.5;  // блоков до игрока — можно менять
+    private static final int LIFETIME_TICKS = 600;       // 30 секунд
+    private static final double DESPAWN_DISTANCE = 6.5;  // блоков до игрока
 
     private int ageTicks = 0;
     private UUID ownerUuid;
@@ -41,7 +42,6 @@ public class WatcherEntity extends PathAwareEntity {
 
     @Override
     protected void initGoals() {
-        // никаких goal передвижения — стоит на месте, только смотрит на игрока
         this.goalSelector.add(0, new LookAtEntityGoal(this, PlayerEntity.class, 24.0f, 1.0f));
     }
 
@@ -52,16 +52,26 @@ public class WatcherEntity extends PathAwareEntity {
 
     @Override
     public boolean isInvulnerableTo(DamageSource source) {
-        return true; // его нельзя атаковать/убить — только он сам исчезает
+        return true; 
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        if (this.getWorld().isClient) {
+        if (this.getWorld().isClient()) {
             return;
         }
+
+        // --- ПРЕДОХРАНИТЕЛЬ ПРОКЛЯТЬЯ ---
+        if (this.getServer() != null) {
+            CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(this.getServer());
+            if (!state.isCurseActive) {
+                this.discard(); // Мгновенно удаляем, если монолит не сломан
+                return;
+            }
+        }
+        // --------------------------------
 
         this.ageTicks++;
 
@@ -69,7 +79,7 @@ public class WatcherEntity extends PathAwareEntity {
 
         if (playerTooClose || this.ageTicks >= LIFETIME_TICKS) {
             stopMusicForOwner();
-            this.discard(); // тихо исчезает, без анимации смерти/дропа
+            this.discard(); 
         }
     }
 
