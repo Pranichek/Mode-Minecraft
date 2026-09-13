@@ -51,5 +51,6 @@
     "item.minecraft.potion.effect.heroic_potion": "Heroic Potion",
     "item.minecraft.splash_potion.effect.heroic_potion": "Heroic Splash Potion",
     "item.minecraft.lingering_potion.effect.heroic_potion": "Heroic Lingering Potion",
-    "item.minecraft.tipped_arrow.effect.heroic_potion": "Heroic Arrow"
+    "item.minecraft.tipped_arrow.effect.heroic_potion": "Heroic Arrow",
+    "item.crimsonmoon.portal_key": "Ключ до Порталу"
 }   

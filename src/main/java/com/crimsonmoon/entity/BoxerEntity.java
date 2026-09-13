@@ -1,5 +1,7 @@
 package com.crimsonmoon.entity;
 
+import com.crimsonmoon.world.CrimsonMoonWorldState;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -40,27 +42,18 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-/**
- * Boxer — сложный, умный пред-босс.
- * Атаки: comba (связка), aperkotik (апперкот-подброс), grab-Crab (захват-притяг),
- * charge (рывок), leap (прыжок-налёт с волной при приземлении),
- * shockwave (ударная волна вблизи), rage-teleport (секретная атака против укрытий).
- * Не застревает: активно преследует по навигации и выкапывается из блоков.
- */
 public class BoxerEntity extends HostileEntity implements GeoEntity {
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     private int currentPhase = 1;
     private int attackAnimTicks = 0;
-
-    // Кулдауны/счётчики (в тиках)
     private int specialCooldown = 40;
     private int chargeCooldown = 120;
     private int waveCooldown = 200;
     private int jumpCooldown = 160;
     private int digCooldown = 0;
-    private int frustrationTicks = 0; // копится, пока босс не может достать игрока
+    private int frustrationTicks = 0;
 
     private boolean isLeaping = false;
 
@@ -83,7 +76,7 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
 
     @Override
     public boolean isInvulnerableTo(DamageSource damageSource) {
-        if (damageSource.isOf(DamageTypes.IN_WALL)) return true; // не задыхается в блоках
+        if (damageSource.isOf(DamageTypes.IN_WALL)) return true;
         return super.isInvulnerableTo(damageSource);
     }
 
@@ -102,7 +95,6 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
     protected void initGoals() {
         this.goalSelector.add(0, new SwimGoal(this));
         this.goalSelector.add(1, new MeleeAttackGoal(this, 1.15, true));
-        // Умное преследование: идёт к игроку даже без прямой видимости
         this.goalSelector.add(4, new BoxerStalkGoal(this, 1.15));
         this.goalSelector.add(7, new LookAtEntityGoal(this, PlayerEntity.class, 20.0f));
         this.goalSelector.add(8, new LookAroundGoal(this));
@@ -142,7 +134,7 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
             }
             if (this.isLeaping && this.isOnGround()) {
                 this.isLeaping = false;
-                doShockwave(2.0f); // усиленная волна в точке приземления
+                doShockwave(2.0f);
             }
         }
 
@@ -151,33 +143,28 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
 
         double dist = this.distanceTo(target);
 
-        // СЕКРЕТНАЯ АТАКА «ЯРОСТЬ»: игрок близко, но босс не может дотянуться
-        // (спрятался в будке/под деревом/замуровался) — копим гнев и телепортируемся.
         boolean cantReach = dist < 18 && !this.canSee(target) && !this.isLeaping;
         if (cantReach) {
             this.frustrationTicks++;
         } else {
             this.frustrationTicks = Math.max(0, this.frustrationTicks - 2);
         }
-        if (this.frustrationTicks >= 100) { // ~5 сек безуспешных попыток
+        if (this.frustrationTicks >= 100) {
             this.frustrationTicks = 0;
             doRageTeleport(target);
             return;
         }
 
-        // ПРЫЖОК «КАК ХАЛК»: с дистанции прыгает по дуге к игроку
         if (this.jumpCooldown <= 0 && dist > 6 && dist < 22 && this.isOnGround()
                 && this.getRandom().nextInt(3) == 0) {
             doLeap(target);
         }
 
-        // РЫВОК-ТАРАН: короткое сближение
         if (this.chargeCooldown <= 0 && dist > 4 && dist < 16 && !this.isLeaping
                 && this.getRandom().nextInt(3) == 0) {
             doCharge(target);
         }
 
-        // ВОЛНА вблизи (2-3 фаза)
         if (this.currentPhase >= 2 && this.waveCooldown <= 0 && dist < 5 && !this.isLeaping) {
             doShockwave(1.0f);
         }
@@ -197,7 +184,6 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
         }
     }
 
-    /** Прыжок по дуге к игроку. Волна сработает при приземлении (mobTick). */
     private void doLeap(LivingEntity target) {
         this.jumpCooldown = 140 - this.currentPhase * 20;
         Vec3d dir = target.getPos().subtract(this.getPos());
@@ -214,7 +200,6 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
             SoundEvents.ENTITY_RAVAGER_ROAR, SoundCategory.HOSTILE, 1.2f, 1.0f);
     }
 
-    /** Короткий рывок к игроку. */
     private void doCharge(LivingEntity target) {
         this.chargeCooldown = 100 - this.currentPhase * 15;
         Vec3d dir = target.getPos().subtract(this.getPos()).normalize();
@@ -226,7 +211,6 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
             SoundEvents.ENTITY_RAVAGER_STEP, SoundCategory.HOSTILE, 1.5f, 0.7f);
     }
 
-    /** Ударная волна по площади. mult — множитель радиуса/силы. */
     private void doShockwave(float mult) {
         this.waveCooldown = 160;
         this.triggerAnim("main_controller", "aperkotik");
@@ -252,7 +236,6 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
         }
     }
 
-    /** «Ярость»: телепорт вплотную к спрятавшемуся игроку + удар + волна. */
     private void doRageTeleport(LivingEntity target) {
         Vec3d behind = target.getPos().subtract(target.getRotationVec(1.0f).multiply(1.2));
         this.refreshPositionAndAngles(behind.x, target.getY(), behind.z, this.getYaw(), 0);
@@ -273,7 +256,6 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
         this.attackAnimTicks = 16;
     }
 
-    /** Выкапывается, только если реально замурован (блок в клетке ног или головы). */
     private void freeSpaceIfBuried(ServerWorld world) {
         BlockPos feet = this.getBlockPos();
         BlockState atFeet = world.getBlockState(feet);
@@ -288,7 +270,7 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
                     BlockPos p = feet.add(x, y, z);
                     BlockState st = world.getBlockState(p);
                     if (st.isAir() || !st.getFluidState().isEmpty()) continue;
-                    if (st.getHardness(world, p) < 0) continue; // бедрок
+                    if (st.getHardness(world, p) < 0) continue; 
                     if (st.isOf(Blocks.OBSIDIAN) || st.isOf(Blocks.REINFORCED_DEEPSLATE)) continue;
                     world.breakBlock(p, false);
                 }
@@ -296,7 +278,6 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
         }
     }
 
-    /** Обычный удар — связка/апперкот/захват по фазе. */
     @Override
     public boolean tryAttack(Entity target) {
         boolean result = super.tryAttack(target);
@@ -331,6 +312,22 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
         return result;
     }
 
+    // ---- ОНОВЛЕНИЙ МЕТОД onDeath ДЛЯ БОКСЕРА ----
+    @Override
+    public void onDeath(DamageSource damageSource) {
+        super.onDeath(damageSource);
+
+        if (this.getWorld() instanceof ServerWorld serverWorld) {
+            CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(serverWorld.getServer());
+            state.boxerDefeated = true;
+            state.markDirty();
+
+            // Перевіряємо чи вбиті всі три, щоб викинути ключ
+            CrimsonMoonWorldState.checkAndDropKey(serverWorld, this);
+        }
+    }
+    // ----------------------------------------------
+
     @Override
     protected SoundEvent getAmbientSound() {
         return SoundEvents.ENTITY_RAVAGER_AMBIENT;
@@ -346,7 +343,6 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
         return SoundEvents.ENTITY_RAVAGER_DEATH;
     }
 
-    // ---- GeckoLib ----
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "main_controller", 5, this::movementPredicate)

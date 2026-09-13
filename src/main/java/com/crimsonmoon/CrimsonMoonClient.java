@@ -11,6 +11,14 @@ import com.crimsonmoon.mixin.GameRendererInvoker;
 import com.crimsonmoon.client.render.MonsterikEntityRenderer;
 import com.crimsonmoon.client.render.BoxerEntityRenderer;
 
+import com.crimsonmoon.client.gui.BossJournalScreen;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
+import org.lwjgl.glfw.GLFW;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
@@ -46,6 +54,8 @@ public class CrimsonMoonClient implements ClientModInitializer {
     private static final ModelIdentifier NECKLACE_WORN_MODEL =
         new ModelIdentifier("crimsonmoon", "blood_necklace_worn", "inventory");
 
+    private static KeyBinding journalKey;
+
     @Override
     public void onInitializeClient() {
         EntityRendererRegistry.register(ModEntities.BLOODWALKER, BloodwalkerEntityRenderer::new);
@@ -63,6 +73,37 @@ public class CrimsonMoonClient implements ClientModInitializer {
 
         registerPotionColors();
         registerBowPredicates();
+        registerJournalKey();
+    }
+
+    // Клавіша J — відкрити журнал боссів (запит даних із сервера + приймач відповіді)
+    private void registerJournalKey() {
+        journalKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+            "key.crimsonmoon.journal",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_J,
+            "category.crimsonmoon"
+        ));
+
+        // приймаємо відповідь сервера зі статусами боссів і відкриваємо журнал
+        ClientPlayNetworking.registerGlobalReceiver(JournalNetworking.RESPONSE, (client, handler, buf, sender) -> {
+            BossJournalData data = BossJournalData.read(buf);
+            client.execute(() -> {
+                BossJournalScreen.latestData = data;
+                if (client.currentScreen == null) {
+                    client.setScreen(new BossJournalScreen());
+                }
+            });
+        });
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (journalKey.wasPressed()) {
+                if (client.currentScreen == null && client.getNetworkHandler() != null) {
+                    // просимо сервер надіслати актуальні статуси; екран відкриється у приймачі
+                    ClientPlayNetworking.send(JournalNetworking.REQUEST, PacketByteBufs.create());
+                }
+            }
+        });
     }
 
     // Предикати "pulling"/"pull" для blood_bow.json — саме за ними ресурспак

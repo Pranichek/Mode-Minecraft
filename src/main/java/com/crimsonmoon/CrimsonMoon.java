@@ -186,6 +186,7 @@ public class CrimsonMoon implements ModInitializer {
         com.crimsonmoon.world.MonsterikBossManager.register();
         MonsterikBossCommand.register();
         FearManager.register();
+        JournalNetworking.registerServer();
 
         ThorncallerEntity.MINION_TYPE = ModEntities.BLOODWALKER;
 
@@ -360,6 +361,14 @@ public class CrimsonMoon implements ModInitializer {
             .setIgnoreEntities(false);
 
         template.place(world, finalSpawnPos, finalSpawnPos, placementData, world.random, 2);
+
+        // запоминаем координаты монолита для журнала (первый этап)
+        CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(world.getServer());
+        state.monolitPlaced = true;
+        state.monolitX = finalSpawnPos.getX();
+        state.monolitY = finalSpawnPos.getY();
+        state.monolitZ = finalSpawnPos.getZ();
+        state.markDirty();
     }
 
     private static BlockPos findSpaciousCave(ServerWorld world, BlockPos center, int radius) {

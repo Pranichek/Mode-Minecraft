@@ -104,10 +104,13 @@ public class NightmareEntity extends HostileEntity implements GeoEntity {
     @Override
     public void onDeath(DamageSource damageSource) {
         super.onDeath(damageSource);
-        if (!this.getWorld().isClient && this.getServer() != null) {
-            CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(this.getServer());
+
+        if (this.getWorld() instanceof ServerWorld serverWorld) {
+            CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(serverWorld.getServer());
             state.nightmareDefeated = true;
             state.markDirty();
+
+            CrimsonMoonWorldState.checkAndDropKey(serverWorld, this);
         }
     }
 

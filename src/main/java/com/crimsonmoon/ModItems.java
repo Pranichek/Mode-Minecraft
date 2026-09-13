@@ -13,6 +13,8 @@ import net.minecraft.item.ArmorItem;
 
 import com.crimsonmoon.item.BloodNecklaceItem;
 import com.crimsonmoon.item.CrimsonShieldItem;
+import com.crimsonmoon.item.PortalKeyItem;
+
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 
 import com.crimsonmoon.item.BloodStaffItem;
@@ -146,4 +148,6 @@ public class ModItems {
             item
         );
     }
+
+   public static final Item PORTAL_KEY = registerItem("portal_key", new PortalKeyItem(new FabricItemSettings()));
 }

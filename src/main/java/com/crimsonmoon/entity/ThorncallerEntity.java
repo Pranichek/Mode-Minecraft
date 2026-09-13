@@ -234,10 +234,15 @@ public class ThorncallerEntity extends ZombieEntity implements GeoEntity {
         super.onDeath(damageSource);
         this.bossBar.clearPlayers();
 
-        // Снимаем "флажок активного Thorncaller" и запускаем 10-минутный
-        // кулдаун до следующего возможного спавна (см. ThorncallerSpawnManager).
         if (!this.getWorld().isClient && this.getWorld() instanceof ServerWorld serverWorld) {
+            // Твоя старая логика: кулдаун и очистка спавнера
             com.crimsonmoon.world.ThorncallerSpawnManager.onThorncallerDied(serverWorld, this);
+
+            // Новая логика: запись победы в статус и проверка на дроп ключа
+            com.crimsonmoon.world.ThorncallerBossState thornState = com.crimsonmoon.world.ThorncallerBossState.get(serverWorld.getServer().getOverworld());
+            thornState.setDefeated(true);
+
+            com.crimsonmoon.world.CrimsonMoonWorldState.checkAndDropKey(serverWorld, this);
         }
     }
 

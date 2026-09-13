@@ -64,4 +64,9 @@ public class ThorncallerBossState extends PersistentState {
         state.awaitingLoot = nbt.getBoolean("AwaitingLoot");
         return state;
     }
+
+    public void setDefeated(boolean value) {
+        this.defeated = value; // Если твоя переменная называется isDefeated, напиши this.isDefeated = value;
+        this.markDirty();      // Сохраняем изменения на сервере
+    }
 }
