@@ -23,20 +23,19 @@ import org.joml.Vector3f;
 
 import com.crimsonmoon.FearManager;
 import com.crimsonmoon.entity.BloodBoltEntity;
+import com.crimsonmoon.world.CrimsonMoonWorldState;
 
 import java.util.List;
 
 public class BloodStaffItem extends Item {
 
-    private static final int RANGED_COOLDOWN_TICKS = 20; // 1с
-    private static final int SLAM_COOLDOWN_TICKS = 13 * 20;    // 13с
+    private static final int RANGED_COOLDOWN_TICKS = 20; 
+    private static final int SLAM_COOLDOWN_TICKS = 13 * 20;
 
     private static final float SLAM_DAMAGE = 24.0f;
     private static final double SLAM_RADIUS = 10.0;
     private static final double SLAM_KNOCKBACK = 2.2;
 
-    // Способности посоха питаются от шкалы страха ("заряд") — см. FearManager.
-    // Обычный выстрел заметно дешевле способности (удара об землю).
     private static final float BOLT_FEAR_COST = 5.0f;
     private static final float SLAM_FEAR_COST = 20.0f;
 
@@ -53,6 +52,7 @@ public class BloodStaffItem extends Item {
         tooltip.add(Text.translatable("item.crimsonmoon.blood_staf.tooltip_attack").formatted(Formatting.GRAY));
         tooltip.add(Text.translatable("item.crimsonmoon.blood_staf.tooltip_ability").formatted(Formatting.DARK_GRAY));
         tooltip.add(Text.translatable("item.crimsonmoon.blood_staf.tooltip_fear").formatted(Formatting.DARK_PURPLE));
+        tooltip.add(Text.literal("Безкоштовно після перемоги над Кошмаром!").formatted(Formatting.GOLD));
     }
 
     @Override
@@ -65,20 +65,15 @@ public class BloodStaffItem extends Item {
                 return TypedActionResult.pass(stack);
             }
             if (world.isClient) {
-                // На клиенте нет доступа к реальному значению FearManager —
-                // используем известное по синхронизации HUD-значение, чтобы
-                // НЕ проигрывать замах/не ставить кулдаун, если сервер точно
-                // откажет. Раньше здесь проверка полностью пропускалась
-                // (world.isClient делал левую часть && ложной), из-за чего
-                // способность выглядела так, будто она сработала, хотя на
-                // самом деле сервер её отклонял, — страх при этом не тратился,
-                // а кулдаун всё равно включался.
                 if (!hasEnoughFearClientSide(user, SLAM_FEAR_COST)) {
                     return TypedActionResult.fail(stack);
                 }
-            } else if (!FearManager.consume(user, SLAM_FEAR_COST)) {
-                notifyNotEnoughFear(user);
-                return TypedActionResult.fail(stack);
+            } else {
+                CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(world.getServer());
+                if (!state.monsterikDefeated && !FearManager.consume(user, SLAM_FEAR_COST)) {
+                    notifyNotEnoughFear(user);
+                    return TypedActionResult.fail(stack);
+                }
             }
             groundSlam(world, user);
             setReadyTick(stack, NBT_SLAM_READY_TICK, time + SLAM_COOLDOWN_TICKS);
@@ -90,9 +85,12 @@ public class BloodStaffItem extends Item {
                 if (!hasEnoughFearClientSide(user, BOLT_FEAR_COST)) {
                     return TypedActionResult.fail(stack);
                 }
-            } else if (!FearManager.consume(user, BOLT_FEAR_COST)) {
-                notifyNotEnoughFear(user);
-                return TypedActionResult.fail(stack);
+            } else {
+                CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(world.getServer());
+                if (!state.monsterikDefeated && !FearManager.consume(user, BOLT_FEAR_COST)) {
+                    notifyNotEnoughFear(user);
+                    return TypedActionResult.fail(stack);
+                }
             }
             shootBolt(world, user);
             setReadyTick(stack, NBT_BOLT_READY_TICK, time + RANGED_COOLDOWN_TICKS);
@@ -102,22 +100,22 @@ public class BloodStaffItem extends Item {
         return TypedActionResult.success(stack, world.isClient());
     }
 
-    /**
-     * Клиентское предсказание нехватки страха — используем последнее значение,
-     * присланное сервером для HUD ({@code FearHudOverlay.currentFear}), чтобы
-     * заранее (без круговой задержки на сервер и обратно) не проигрывать
-     * замах и не выставлять кулдаун предмета, если сервер всё равно откажет.
-     * Реальная трата (и финальная проверка) остаётся только на сервере —
-     * см. {@link FearManager#consume}.
-     */
     private static boolean hasEnoughFearClientSide(PlayerEntity user, float amount) {
         if (user.isCreative() || user.isSpectator()) {
             return true;
         }
+
+        boolean isCursed = dev.emi.trinkets.api.TrinketsApi.getTrinketComponent(user)
+            .map(comp -> comp.isEquipped(com.crimsonmoon.ModItems.BLOOD_NECKLACE))
+            .orElse(false);
+        
+        if (!isCursed) {
+            return true; 
+        }
+
         return com.crimsonmoon.client.gui.FearHudOverlay.currentFear + 1.0e-4f >= amount;
     }
 
-    /** Недостаточно "заряда" страха для каста — сообщаем игроку вместо тихого отказа. */
     private static void notifyNotEnoughFear(PlayerEntity user) {
         user.sendMessage(Text.translatable("item.crimsonmoon.not_enough_fear").formatted(Formatting.DARK_GRAY), true);
         user.getWorld().playSound(null, user.getBlockPos(), SoundEvents.BLOCK_FIRE_EXTINGUISH,
@@ -133,7 +131,6 @@ public class BloodStaffItem extends Item {
         stack.getOrCreateNbt().putLong(key, readyTick);
     }
 
-    // ==== 1. ПКМ - выстрел====
     private void shootBolt(World world, PlayerEntity user) {
         if (world.isClient) {
             return;
@@ -147,7 +144,6 @@ public class BloodStaffItem extends Item {
         bolt.setVelocity(user, user.getPitch(), user.getYaw(), 0.0f, 1.6f, 0.0f);
         world.spawnEntity(bolt);
 
-        // короткая яркая вспышка у "дула" — компактная, без дыма
         if (world instanceof ServerWorld serverWorld) {
             Vec3d look = user.getRotationVec(1.0f);
             double mx = user.getX() + look.x * 0.8;
@@ -159,7 +155,6 @@ public class BloodStaffItem extends Item {
         }
     }
 
-    // ==== 2. Shift + ПКМ — удар посохом об землю ====
     private void groundSlam(World world, PlayerEntity user) {
         if (world.isClient || !(world instanceof ServerWorld serverWorld)) {
             return;
@@ -174,7 +169,6 @@ public class BloodStaffItem extends Item {
         double cy = user.getY() + 0.1;
         double cz = user.getZ();
 
-        // кільця часток, що розходяться від гравця
         for (int ring = 0; ring < 3; ring++) {
             double radius = 1.5 + ring * 2.0;
             int points = (int) (radius * 10);

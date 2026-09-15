@@ -235,12 +235,12 @@ public class ThorncallerEntity extends ZombieEntity implements GeoEntity {
         this.bossBar.clearPlayers();
 
         if (!this.getWorld().isClient && this.getWorld() instanceof ServerWorld serverWorld) {
-            // Твоя старая логика: кулдаун и очистка спавнера
             com.crimsonmoon.world.ThorncallerSpawnManager.onThorncallerDied(serverWorld, this);
 
-            // Новая логика: запись победы в статус и проверка на дроп ключа
             com.crimsonmoon.world.ThorncallerBossState thornState = com.crimsonmoon.world.ThorncallerBossState.get(serverWorld.getServer().getOverworld());
             thornState.setDefeated(true);
+
+            this.dropItem(com.crimsonmoon.ModItems.BLOOD_STAFF);
 
             com.crimsonmoon.world.CrimsonMoonWorldState.checkAndDropKey(serverWorld, this);
         }

@@ -28,13 +28,11 @@ public class BossJournalScreen extends Screen {
 
     @Override
     protected void init() {
-        // перемикач мови
         this.addDrawableChild(ButtonWidget.builder(
             Text.literal(english ? "UA" : "EN"),
             b -> { this.english = !this.english; this.clearAndInit(); }
         ).dimensions(this.width - 50, 10, 40, 20).build());
 
-        // кнопка "показати координати" — доступна завжди (допомога знайти)
         this.addDrawableChild(ButtonWidget.builder(
             Text.literal(english ? "Show coordinates" : "Показати координати"),
             b -> { this.showCoords = true; this.clearAndInit(); }
@@ -52,18 +50,23 @@ public class BossJournalScreen extends Screen {
 
         // --- Етап 1: моноліт ---
         String monolitCoords = "";
-        if (showCoords && latestData.monolitPlaced) {
+        if (showCoords && latestData.monolitPlaced && !latestData.isCurseActive) {
             monolitCoords = "  [" + latestData.monolitX + ", " + latestData.monolitY + ", " + latestData.monolitZ + "]";
         }
+        
+        String monolitStatus = latestData.isCurseActive 
+            ? (english ? " [DESTROYED]" : " [ЗРУЙНОВАНО]") 
+            : (english ? " [INTACT]" : " [ЦІЛИЙ]");
+
         drawRow(ctx, x, y, ICON_MONOLIT,
-            english ? "Stage 1: Find the Monolith" : "Етап 1: Знайти Моноліт",
+            (english ? "Stage 1: Monolith" : "Етап 1: Моноліт") + monolitStatus,
             english ? "A cursed building holds the Monolith. Break it to begin the curse."
                     : "У проклятій будівлі стоїть Моноліт. Зруйнуй його, щоб почати прокляття.",
             (english ? "Location: On the surface" : "Оселя: На поверхні") + monolitCoords,
-            null); // без статусу живий/мертвий
+            latestData.isCurseActive); // Передаємо статус, щоб текст став зеленим
         y += rowH;
 
-        // --- Жах (Nightmare) — координат нема, лише біом ---
+        // --- Жах (Nightmare) ---
         drawRow(ctx, x, y, ICON_NIGHTMARE,
             (english ? "Nightmare" : "Жах") + statusText(latestData.nightmareDefeated),
             english ? "A shadow that hunts underground. It does not forgive the light."
@@ -72,7 +75,7 @@ public class BossJournalScreen extends Screen {
             latestData.nightmareDefeated);
         y += rowH;
 
-        // --- Боксер — є координати колізею ---
+        // --- Боксер ---
         String boxerCoords = "";
         if (showCoords && latestData.arenaPlaced) {
             boxerCoords = "  [" + latestData.arenaX + ", " + latestData.arenaY + ", " + latestData.arenaZ + "]";
@@ -85,7 +88,7 @@ public class BossJournalScreen extends Screen {
             latestData.boxerDefeated);
         y += rowH;
 
-        // --- Терновик (Thorncaller) — координат нема, лише біом ---
+        // --- Терновик (Thorncaller) ---
         drawRow(ctx, x, y, ICON_THORNCALLER,
             (english ? "Thorncaller" : "Терновик") + statusText(latestData.thorncallerDefeated),
             english ? "It watches from the canopy. The jungle itself is its weapon."
@@ -105,22 +108,16 @@ public class BossJournalScreen extends Screen {
         super.render(ctx, mouseX, mouseY, delta);
     }
 
-    /** Текст статусу [ЖИВИЙ]/[ПЕРЕМОЖЕНО] як рядок (додається до імені). */
     private String statusText(boolean defeated) {
         if (defeated) return english ? " [DEFEATED]" : " [ПЕРЕМОЖЕНО]";
         return english ? " [ALIVE]" : " [ЖИВИЙ]";
     }
 
-    /**
-     * Малює один рядок журналу: іконка + назва + опис + місце.
-     * defeated: true=зелений, false=червоний, null=без кольорового статусу (етап моноліту).
-     */
     private void drawRow(DrawContext ctx, int x, int y, Identifier icon,
                          String name, String desc, String place, Boolean defeated) {
         ctx.drawTexture(icon, x, y, 0, 0, 32, 32, 32, 32);
         int textX = x + 40;
 
-        // назва (статус уже вшитий у name через statusText, тому фарбуємо лише саму назву)
         Formatting nameColor = Formatting.WHITE;
         if (defeated != null) {
             nameColor = defeated ? Formatting.GREEN : Formatting.WHITE;

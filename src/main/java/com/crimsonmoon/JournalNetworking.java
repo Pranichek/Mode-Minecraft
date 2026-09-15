@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 
-/** Серверная часть: слушает запрос от клиента и присылает актуальные статусы боссов. */
 public class JournalNetworking {
 
     public static final Identifier REQUEST = new Identifier("crimsonmoon", "journal_request");
@@ -25,6 +24,7 @@ public class JournalNetworking {
                 data.boxerDefeated = state.boxerDefeated;
                 data.thorncallerDefeated = thorn.isDefeated();
                 data.monsterikDefeated = state.monsterikDefeated;
+                data.isCurseActive = state.isCurseActive;
 
                 data.arenaPlaced = state.boxerArenaPlaced;
                 data.arenaX = state.arenaX;

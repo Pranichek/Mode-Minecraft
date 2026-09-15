@@ -44,6 +44,16 @@ public class FearHudOverlay implements HudRenderCallback {
             return;
         }
 
+        // --- ПЕРЕВІРКА НА НАЯВНІСТЬ ПРОКЛЯТТЯ (НАМИСТА) ---
+        boolean isCursed = dev.emi.trinkets.api.TrinketsApi.getTrinketComponent(client.player)
+            .map(comp -> comp.isEquipped(com.crimsonmoon.ModItems.BLOOD_NECKLACE))
+            .orElse(false);
+
+        if (!isCursed) {
+            return; // Якщо прокляття знято, припиняємо малювати шкалу
+        }
+        // --------------------------------------------------
+
         float fearPercentage = currentFear / FearManager.MAX_FEAR;
         if (fearPercentage <= 0.0f) {
             currentPulse = 0.0f;

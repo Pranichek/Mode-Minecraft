@@ -55,57 +55,13 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-/**
- * Босс Monsterik. 400 HP, полоса босса (boss bar) сверху экрана, 3 стадии
- * (фазы) по проценту здоровья, которые усиливают его на ходу:
- *
- *   Фаза 1 — 100%..66% HP: обычная скорость, размеренная ходьба ("walk"),
- *            только ближний бой.
- *   Фаза 2 —  66%..33% HP: ускоряется, периодически делает рывок ("run")
- *            в сторону цели с уроном при столкновении.
- *   Фаза 3 —  33%..0%  HP: "ярость" — ещё выше скорость и урон, рывок
- *            восстанавливается быстрее, красные частицы и рёв при входе
- *            в фазу, плюс уникальная одноразовая атака "призыв волн"
- *            (см. ниже) — срабатывает один раз, ровно при первом входе
- *            в эту фазу.
- *
- * Уникальная атака фазы 3 "призыв волн" (только один раз за весь бой):
- * Monsterik телепортируется на точку
- * спавна арены, становится неуязвимым, не двигается и последовательно
- * призывает 4 волны мобов (следующая волна — только когда предыдущая
- * полностью зачищена): 4 зомби → 2 скелета + 2 кадавра (Husk) → 2 разбойника
- * с арбалетами (Pillager) + 1 с топором (Vindicator) → 3 разбойника с
- * топорами (Vindicator) + 2 призывателя (Evoker, сами призывают вредин-Vex
- * и бьют шипами из-под земли). Пока идёт эта атака, никакие другие атаки и
- * способности недоступны; снова можно бить босса, когда умрёт последний моб
- * последней волны.
- *
- * Также с фазы 1 доступна атака "молниевые круги" — несколько колец
- * ground-телеграфов вокруг Monsterik, после которых в этих точках бьют
- * молнии.
- *
- * Единственность в мире (только один живой Monsterik одновременно) и спавн
- * на арене — обеспечиваются {@link com.crimsonmoon.world.MonsterikBossManager},
- * который также вызывается через {@code /monsterikboss spawn}
- * (см. {@link com.crimsonmoon.MonsterikBossCommand}).
- *
- * Модель/анимации грузятся через GeckoLib из:
- *   assets/crimsonmoon/geo/monsterik.geo.json
- *   assets/crimsonmoon/animations/monsterik.animation.json (walk / run / attack)
- *   assets/crimsonmoon/textures/entity/monsterik/monsterik.png
- * (см. MonsterikModel / MonsterikEntityRenderer).
- */
 public class MonsterikEntity extends HostileEntity implements GeoEntity {
-
-    // ==================== Общие константы ====================
 
     public static final double MAX_HEALTH = 400.0;
 
     private static final double PHASE_2_HEALTH_FRACTION = 0.66;
     private static final double PHASE_3_HEALTH_FRACTION = 0.33;
 
-    // база (фаза 1) — дальше значения по фазам ниже
-    // сделан заметно быстрее во всех фазах (было 0.24/0.28/0.33)
     private static final double BASE_MOVEMENT_SPEED = 0.34;
     private static final double BASE_ATTACK_DAMAGE = 7.0;
     private static final double BASE_ARMOR = 6.0;
@@ -113,11 +69,9 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
     private static final double[] PHASE_MOVEMENT_SPEED = {BASE_MOVEMENT_SPEED, 0.40, 0.47};
     private static final double[] PHASE_ATTACK_DAMAGE = {BASE_ATTACK_DAMAGE, 10.0, 14.0};
 
-    // радиус обнаружения цели (было 40)
     private static final double DETECTION_RANGE = 25.0;
 
-    // === Рывок ("dash strike") — с фазы 2 ===
-    private static final int[] DASH_COOLDOWN_TICKS = {0, 16 * 20, 9 * 20}; // фаза1 не использует рывок
+    private static final int[] DASH_COOLDOWN_TICKS = {0, 16 * 20, 9 * 20}; 
     private static final double DASH_MIN_RANGE = 4.0;
     private static final double DASH_MAX_RANGE = 12.0;
     private static final int DASH_TRAVEL_TICKS = 14;
@@ -125,33 +79,22 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
     private static final double DASH_KNOCKBACK = 0.9;
     private static final float DASH_DAMAGE_BONUS = 4.0f;
 
-    // === Атака "молниевые круги" (как шипы у Thorncaller, но вместо шипов —
-    // удары молний; от исходной атаки оставлены только кольца-телеграфы у
-    // земли). Радиус самой атаки и интервалы между кольцами увеличены
-    // относительно оригинальной атаки шипов Thorncaller. ===
     private static final int[] LIGHTNING_COOLDOWN_TICKS = {18 * 20, 14 * 20, 10 * 20};
-    private static final double LIGHTNING_TRIGGER_RANGE = 22.0;   // увеличенный радиус атаки (было 14 у шипов)
+    private static final double LIGHTNING_TRIGGER_RANGE = 22.0;   
 
-    private static final int LIGHTNING_RING_COUNT = 3;            // столько же колец, сколько было у шипов
+    private static final int LIGHTNING_RING_COUNT = 3;            
     private static final int LIGHTNING_PER_RING = 8;
-    private static final double LIGHTNING_RING_MIN_RADIUS = 3.0;      // было 2.0 у шипов
+    private static final double LIGHTNING_RING_MIN_RADIUS = 3.0;      
     private static final double LIGHTNING_RING_WIDTH = 1.8;
-    private static final double LIGHTNING_RING_SPACING = 4.5;         // увеличенный интервал между кольцами (было 2.6)
-    // итого кольца получаются примерно: 3.0-4.8, 7.5-9.3, 12.0-13.8 блоков от Monsterik
+    private static final double LIGHTNING_RING_SPACING = 4.5;         
 
-    private static final double LIGHTNING_TELEGRAPH_RADIUS = 0.6;     // радиус самого кольца-телеграфа у земли
-    private static final int LIGHTNING_RISE_TICKS = 18;               // сколько тиков кольцо "предупреждает" перед ударом молнии
+    private static final double LIGHTNING_TELEGRAPH_RADIUS = 0.6;     
+    private static final int LIGHTNING_RISE_TICKS = 18;               
     private static final double LIGHTNING_HIT_RADIUS = 1.4;
     private static final float LIGHTNING_DAMAGE = 12.0f;
 
-    private static final int GLOBAL_ATTACK_DELAY_TICKS = 2 * 20; // пауза между спец-способностями
+    private static final int GLOBAL_ATTACK_DELAY_TICKS = 2 * 20; 
 
-    // === Атака "призыв волн" — уникальная атака фазы 3, срабатывает
-    // ровно ОДИН РАЗ за всё время боя (в момент входа в 3-ю фазу): телепорт
-    // на точку спавна арены, неуязвимость, боссу не двигается, призывает
-    // 4 волны мобов одну за другой (следующая волна — только когда
-    // предыдущая полностью зачищена). Пока идёт эта атака, никакие другие
-    // атаки/способности недоступны. ===
     private record WaveMobEntry(EntityType<? extends MobEntity> type, int count) {}
 
     private static final WaveMobEntry[][] SUMMON_WAVES = {
@@ -164,16 +107,15 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
     private static final double SUMMON_SPAWN_RADIUS = 5.0;
 
     private static final Vector3f ENRAGE_PARTICLE_COLOR = new Vector3f(0.85f, 0.1f, 0.1f);
-    private static final Vector3f LIGHTNING_PARTICLE_COLOR = new Vector3f(0.2f, 0.85f, 0.78f); // бирюзовый
+    private static final Vector3f LIGHTNING_PARTICLE_COLOR = new Vector3f(0.2f, 0.85f, 0.78f); 
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
-    // полоса здоровья вверху экрана, видна всем игрокам, которые видят Monsterik
     private final ServerBossBar bossBar = new ServerBossBar(
         this.getDisplayName(), BossBar.Color.WHITE, BossBar.Style.NOTCHED_10
     );
 
-    private int phase = 1; // 1, 2 или 3
+    private int phase = 1; 
 
     private int globalAttackDelay = 0;
     private int dashCooldown = DASH_COOLDOWN_TICKS[1];
@@ -187,11 +129,11 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
     private boolean lightningAttackActive = false;
     private int lightningAttackProgress = 0;
     private boolean lightningStruck = false;
-    private final List<double[]> lightningPositions = new ArrayList<>(); // [x, groundY, z]
+    private final List<double[]> lightningPositions = new ArrayList<>(); 
 
-    private boolean summonEventUsed = false; // одноразовая атака — срабатывает 1 раз за бой
+    private boolean summonEventUsed = false; 
     private boolean summonEventActive = false;
-    private int summonWaveIndex = -1; // -1 = ещё не начали, 0..3 = текущая волна
+    private int summonWaveIndex = -1; 
     private final List<UUID> currentWaveMobUuids = new ArrayList<>();
 
     public MonsterikEntity(EntityType<? extends HostileEntity> entityType, World world) {
@@ -239,20 +181,16 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
 
     @Override
     public boolean isPushable() {
-        // босс — его не расталкивают
         return false;
     }
 
     @Override
     public boolean isFireImmune() {
-        // не должен загораться от собственной атаки молниями
         return true;
     }
 
     @Override
     public boolean damage(DamageSource source, float amount) {
-        // не получает урон от собственной атаки молниями (в т.ч. если разряд
-        // ударил рядом с ним самим), обычный урон при этом проходит как обычно
         if (source.isOf(net.minecraft.entity.damage.DamageTypes.LIGHTNING_BOLT)) {
             return false;
         }
@@ -261,13 +199,8 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
 
     @Override
     public boolean canImmediatelyDespawn(double distanceSquared) {
-        // босс не деспавнится сам по себе (как ЕНДЕР-дракон/иссушитель) —
-        // за его существование в единственном экземпляре отвечает
-        // MonsterikBossManager
         return false;
     }
-
-    // ==================== Полоса здоровья (boss bar) ====================
 
     @Override
     public void onStartedTrackingBy(ServerPlayerEntity player) {
@@ -288,6 +221,18 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         discardRemainingWaveMobs();
 
         if (!this.getWorld().isClient && this.getWorld() instanceof ServerWorld serverWorld) {
+            
+            // --- ЕПІЧНА СМЕРТЬ ТА ДРОП (БЕЗ ТЕЛЕПОРТАЦІЇ) ---
+            serverWorld.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, this.getX(), this.getY() + 1, this.getZ(), 2, 0, 0, 0, 0);
+            serverWorld.playSound(null, this.getBlockPos(), SoundEvents.ENTITY_ENDER_DRAGON_DEATH, SoundCategory.HOSTILE, 1.0f, 1.0f);
+            
+            this.dropItem(com.crimsonmoon.ModItems.XRAY_GLASSES);
+            
+            com.crimsonmoon.world.CrimsonMoonWorldState state = com.crimsonmoon.world.CrimsonMoonWorldState.getServerState(serverWorld.getServer());
+            state.monsterikDefeated = true;
+            state.markDirty();
+            // ------------------------------------------------
+
             MonsterikBossManager.onMonsterikDied(serverWorld, this);
         }
     }
@@ -305,8 +250,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         currentWaveMobUuids.clear();
     }
 
-    // ==================== Тик: фазы + спец-способности ====================
-
     @Override
     public void tick() {
         super.tick();
@@ -318,10 +261,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         }
 
         if (!this.isAlive()) {
-            // здоровье уже <= 0 (идёт анимация смерти перед фактическим
-            // удалением) — никакой боевой логики, иначе босс может успеть
-            // начать или доиграть атаку уже "после смерти", когда полосы
-            // босса и хитбокса для игрока уже нет
             this.dashActive = false;
             this.lightningAttackActive = false;
             this.summonEventActive = false;
@@ -350,7 +289,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
             this.lightningCooldown--;
         }
 
-        // пока идёт призыв волн — никакие другие атаки/способности недоступны
         if (this.summonEventActive) {
             return;
         }
@@ -381,7 +319,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         }
     }
 
-    /** Пересчитывает фазу по текущему проценту HP и применяет усиления/эффекты при смене. */
     private void updatePhase() {
         double healthFraction = this.getHealth() / this.getMaxHealth();
 
@@ -402,8 +339,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         applyPhaseStats(newPhase);
         playPhaseTransitionEffects(newPhase);
 
-        // уникальная одноразовая атака — срабатывает ровно один раз, в
-        // момент первого входа в 3-ю фазу
         if (newPhase == 3 && !this.summonEventUsed) {
             this.summonEventUsed = true;
             startSummonEvent();
@@ -469,8 +404,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         return result;
     }
 
-    // ==================== Рывок ("dash strike") — с фазы 2 ====================
-
     private void startDash(LivingEntity target) {
         this.dashStartX = this.getX();
         this.dashStartZ = this.getZ();
@@ -495,7 +428,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
     private void progressDash() {
         this.dashProgress++;
         double t = Math.min(1.0, this.dashProgress / (double) DASH_TRAVEL_TICKS);
-        // лёгкое ease-out, чтобы рывок не выглядел как телепорт
         double eased = 1 - Math.pow(1 - t, 2);
 
         double x = MathHelper.lerp(eased, this.dashStartX, this.dashTargetX);
@@ -530,19 +462,11 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         }
     }
 
-    // ==================== Атака "призыв волн" — уникальная, только фаза 3, один раз за бой ====================
-    // Телепорт на точку спавна арены, неуязвимость, Monsterik не двигается
-    // и последовательно призывает 4 волны мобов (следующая волна — только
-    // когда вся предыдущая зачищена). Пока это идёт, другие атаки и
-    // способности недоступны; снова можно бить босса, когда умрёт последний
-    // моб последней волны.
-
     private void startSummonEvent() {
         this.summonEventActive = true;
         this.summonWaveIndex = -1;
         this.currentWaveMobUuids.clear();
 
-        // прерываем любую атаку, которая могла идти в момент перехода в фазу 3
         this.dashActive = false;
         this.lightningAttackActive = false;
 
@@ -550,7 +474,7 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         this.requestTeleport(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
 
         this.setInvulnerable(true);
-        this.setAiDisabled(true); // полностью отключает ИИ-движение — не может сдвинуться с места
+        this.setAiDisabled(true); 
         this.getNavigation().stop();
         this.setTarget(null);
         this.setVelocity(0.0, this.getVelocity().y, 0.0);
@@ -568,9 +492,7 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         spawnNextWave();
     }
 
-    /** Держит Monsterik на месте и следит, когда текущая волна зачищена, чтобы призвать следующую. */
     private void progressSummonEvent() {
-        // не двигается, пока идёт призыв
         this.getNavigation().stop();
         this.setVelocity(0.0, this.getVelocity().y, 0.0);
         this.velocityModified = true;
@@ -582,14 +504,13 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         for (UUID id : this.currentWaveMobUuids) {
             Entity entity = serverWorld.getEntity(id);
             if (entity != null && entity.isAlive()) {
-                return; // волна ещё не зачищена
+                return; 
             }
         }
 
         spawnNextWave();
     }
 
-    /** Призывает следующую волну; если волны закончились — завершает атаку. */
     private void spawnNextWave() {
         this.summonWaveIndex++;
         this.currentWaveMobUuids.clear();
@@ -646,7 +567,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         } else if (mob instanceof VindicatorEntity) {
             mob.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
         } else if (mob instanceof SkeletonEntity) {
-            // лучники — без лука в руке их BowAttackGoal не будет стрелять
             mob.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
         }
         mob.setPersistent();
@@ -669,7 +589,7 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         this.summonWaveIndex = -1;
         this.currentWaveMobUuids.clear();
         this.setInvulnerable(false);
-        this.setAiDisabled(false); // снова можно двигаться и атаковать
+        this.setAiDisabled(false); 
 
         this.getWorld().playSound(
             null, this.getBlockPos(),
@@ -678,11 +598,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
             1.2f, 1.0f
         );
     }
-
-    // ==================== Атака "молниевые круги" ====================
-    // Аналог шиповой атаки Thorncaller: несколько колец точек вокруг
-    // Monsterik. От оригинала оставлены только кольца-телеграфы у земли
-    // (без растущих шипов), сами шипы заменены ударами молний.
 
     private void startLightningRingAttack() {
         lightningPositions.clear();
@@ -725,8 +640,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         lightningAttackProgress++;
         ServerWorld world = (ServerWorld) this.getWorld();
 
-        // кольца-телеграфы у земли пульсируют бирюзовыми частицами всё время
-        // "предупреждения", пока не ударят молнии
         for (double[] pos : lightningPositions) {
             spawnLightningTelegraphRing(world, pos[0], pos[1], pos[2]);
         }
@@ -741,7 +654,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         }
     }
 
-    /** Плоское бирюзовое кольцо частиц у земли — телеграф места будущего удара молнии. */
     private void spawnLightningTelegraphRing(ServerWorld world, double x, double groundY, double z) {
         DustParticleEffect turquoiseDust = new DustParticleEffect(LIGHTNING_PARTICLE_COLOR, 1.2f);
 
@@ -794,8 +706,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         return this.getY();
     }
 
-    // ==================== Звуки ====================
-
     @Override
     public net.minecraft.sound.SoundEvent getAmbientSound() {
         return SoundEvents.ENTITY_RAVAGER_AMBIENT;
@@ -811,8 +721,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
         return SoundEvents.ENTITY_RAVAGER_DEATH;
     }
 
-    // ==================== GeckoLib ====================
-
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "main_controller", 5, this::movementPredicate)
@@ -824,8 +732,6 @@ public class MonsterikEntity extends HostileEntity implements GeoEntity {
             return PlayState.CONTINUE;
         }
 
-        // отдельной "idle"-анимации нет — на месте и на ходу используем "walk",
-        // а во время рывка и в фазе 3 на ходу — более резвый "run"
         if (this.dashActive) {
             state.getController().setAnimation(RawAnimation.begin().thenLoop("animation.monsterik.run"));
         } else if (state.isMoving() && this.phase >= 2) {

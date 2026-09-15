@@ -50,11 +50,11 @@ import net.minecraft.util.math.RotationAxis;
 
 public class CrimsonMoonClient implements ClientModInitializer {
 
-    // идентификатор нашей отдельной 3D-модели для тела
     private static final ModelIdentifier NECKLACE_WORN_MODEL =
         new ModelIdentifier("crimsonmoon", "blood_necklace_worn", "inventory");
 
     private static KeyBinding journalKey;
+    private static KeyBinding xrayKey;
 
     @Override
     public void onInitializeClient() {
@@ -73,11 +73,10 @@ public class CrimsonMoonClient implements ClientModInitializer {
 
         registerPotionColors();
         registerBowPredicates();
-        registerJournalKey();
+        registerKeys();
     }
 
-    // Клавіша J — відкрити журнал боссів (запит даних із сервера + приймач відповіді)
-    private void registerJournalKey() {
+    private void registerKeys() {
         journalKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.crimsonmoon.journal",
             InputUtil.Type.KEYSYM,
@@ -85,7 +84,13 @@ public class CrimsonMoonClient implements ClientModInitializer {
             "category.crimsonmoon"
         ));
 
-        // приймаємо відповідь сервера зі статусами боссів і відкриваємо журнал
+        xrayKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+            "key.crimsonmoon.xray",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_R,
+            "category.crimsonmoon"
+        ));
+
         ClientPlayNetworking.registerGlobalReceiver(JournalNetworking.RESPONSE, (client, handler, buf, sender) -> {
             BossJournalData data = BossJournalData.read(buf);
             client.execute(() -> {
@@ -99,16 +104,18 @@ public class CrimsonMoonClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (journalKey.wasPressed()) {
                 if (client.currentScreen == null && client.getNetworkHandler() != null) {
-                    // просимо сервер надіслати актуальні статуси; екран відкриється у приймачі
                     ClientPlayNetworking.send(JournalNetworking.REQUEST, PacketByteBufs.create());
+                }
+            }
+
+            while (xrayKey != null && xrayKey.wasPressed()) {
+                if (client.getNetworkHandler() != null) {
+                    ClientPlayNetworking.send(new Identifier(CrimsonMoon.MOD_ID, "xray_toggle"), PacketByteBufs.create());
                 }
             }
         });
     }
 
-    // Предикати "pulling"/"pull" для blood_bow.json — саме за ними ресурспак
-    // визначає, яку з 3 текстур натягу (pulling_0/1/2) показати замість
-    // основної текстури лука, поки гравець тримає ПКМ.
     private void registerBowPredicates() {
         ModelPredicateProviderRegistry.register(
             ModItems.BLOOD_BOW,
@@ -129,8 +136,6 @@ public class CrimsonMoonClient implements ClientModInitializer {
         );
     }
 
-    // Власні кольори для наших зіль (замість автоматичного змішування кольорів
-    // ефектів). Для всіх інших зіль (ванільних і чужих) колір рахується як завжди.
     private void registerPotionColors() {
         ColorProviderRegistry.ITEM.register((stack, tintIndex) -> {
             if (tintIndex != 0) {
@@ -138,18 +143,17 @@ public class CrimsonMoonClient implements ClientModInitializer {
             }
             Potion potion = PotionUtil.getPotion(stack);
             if (potion == ModPotions.BATTLE_POTION) {
-                return 0xB22222; // вогняно-червоний - бій
+                return 0xB22222; 
             }
             if (potion == ModPotions.BERSERKER_POTION) {
-                return 0x8B0000; // темно-кривавий - лють берсерка
+                return 0x8B0000; 
             }
             if (potion == ModPotions.HEROIC_POTION) {
-                return 0xFFD700; // золотий - геройське зілля
+                return 0xFFD700; 
             }
             return PotionUtil.getColor(stack);
         }, Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION, Items.TIPPED_ARROW);
 
-        // Регистрируем нашу 3D-модель, чтобы игра её загрузила и запекла
         ModelLoadingPlugin.register(pluginContext -> {
             pluginContext.addModels(NECKLACE_WORN_MODEL);
         });
@@ -161,21 +165,12 @@ public class CrimsonMoonClient implements ClientModInitializer {
                     PlayerEntityModel<AbstractClientPlayerEntity> playerModel = (PlayerEntityModel<AbstractClientPlayerEntity>) contextModel;
 
                     MinecraftClient mc = MinecraftClient.getInstance();
-
-                    // берём именно 3D-модель, а не иконку предмета
                     BakedModel wornModel = mc.getBakedModelManager().getModel(NECKLACE_WORN_MODEL);
 
                     matrices.push();
-
-                    // привязываем к груди и следуем за поворотом тела
                     TrinketRenderer.translateToChest(matrices, playerModel, player);
-
-                    // сначала разворачиваем, потом позиционируем (так оси интуитивны)
                     matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180));
                     matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180));
-
-                    // нормальный размер и позиция на груди/шее
-                    // X — влево/вправо, Y — вверх(к шее)/вниз, Z — вперёд/прижать к телу
                     matrices.scale(0.45F, 0.45F, 0.45F);
                     matrices.translate(-0.5F, 0.2F, -0.15F);
 
@@ -186,21 +181,13 @@ public class CrimsonMoonClient implements ClientModInitializer {
                     );
 
                     mc.getBlockRenderManager().getModelRenderer().render(
-                        matrices.peek(),
-                        vc,
-                        null,
-                        wornModel,
-                        1.0F, 1.0F, 1.0F,
-                        light,
-                        OverlayTexture.DEFAULT_UV
+                        matrices.peek(), vc, null, wornModel, 1.0F, 1.0F, 1.0F, light, OverlayTexture.DEFAULT_UV
                     );
-
                     matrices.pop();
                 }
             }
         );
 
-        // --- ЛОГИКА СЕРОГО ЭКРАНА ---
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null) {
                 boolean isCursed = TrinketsApi.getTrinketComponent(client.player)

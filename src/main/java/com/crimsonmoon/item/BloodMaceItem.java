@@ -2,6 +2,7 @@ package com.crimsonmoon.item;
 
 import com.crimsonmoon.FearManager;
 import com.crimsonmoon.ModToolMaterials;
+import com.crimsonmoon.world.CrimsonMoonWorldState;
 
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.LivingEntity;
@@ -25,20 +26,10 @@ import org.joml.Vector3f;
 
 import java.util.List;
 
-/**
- * Кривава булава.
- *
- * ЛКМ — звичайна ближня атака (важча за меч, але повільніша), із додатковими
- * частками/звуком при влучанні, щоб удар було добре видно.
- *
- * Shift + ПКМ — ударна хвиля навколо гравця, яка відкидає та трохи шкодить
- * ворогам поруч. Має перезарядку не менше 7 секунд.
- */
 public class BloodMaceItem extends SwordItem {
 
-    private static final int SHOCKWAVE_COOLDOWN_TICKS = 7 * 20; // 7с — мінімальна перезарядка за завданням
+    private static final int SHOCKWAVE_COOLDOWN_TICKS = 7 * 20;
 
-    // Ударна хвиля живиться від шкали страху ("заряд") — див. FearManager.
     private static final float SHOCKWAVE_FEAR_COST = 18.0f;
 
     private static final float SHOCKWAVE_DAMAGE = 8.0f;
@@ -47,7 +38,6 @@ public class BloodMaceItem extends SwordItem {
     private static final double SHOCKWAVE_UP_KNOCKBACK = 0.6;
 
     public BloodMaceItem(Settings settings) {
-        // важка й повільна зброя: більше шкоди за удар, менша швидкість атаки за меч
         super(ModToolMaterials.BLOOD, 7, -3.2f, settings);
     }
 
@@ -56,8 +46,8 @@ public class BloodMaceItem extends SwordItem {
         super.appendTooltip(stack, world, tooltip, context);
         tooltip.add(Text.translatable("item.crimsonmoon.blood_mace.tooltip_ability").formatted(Formatting.DARK_GRAY));
         tooltip.add(Text.translatable("item.crimsonmoon.blood_mace.tooltip_fear").formatted(Formatting.DARK_PURPLE));
+        tooltip.add(Text.literal("Безкоштовно після перемоги над Кошмаром!").formatted(Formatting.GOLD));
     }
-
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
@@ -71,16 +61,16 @@ public class BloodMaceItem extends SwordItem {
             return TypedActionResult.pass(stack);
         }
 
-        if (!world.isClient && !FearManager.consume(user, SHOCKWAVE_FEAR_COST)) {
-            notifyNotEnoughFear(user);
-            return TypedActionResult.fail(stack);
-        }
-        if (world.isClient && !hasEnoughFearClientSide(user, SHOCKWAVE_FEAR_COST)) {
-            // Раньше эта проверка на клиенте не выполнялась вообще (условие
-            // "!world.isClient && ..." всегда ложно на клиенте), из-за чего
-            // замах и кулдаун ставились, даже когда сервер отказывал —
-            // визуально способность как будто срабатывала, а по факту нет.
-            return TypedActionResult.fail(stack);
+        if (world.isClient) {
+            if (!hasEnoughFearClientSide(user, SHOCKWAVE_FEAR_COST)) {
+                return TypedActionResult.fail(stack);
+            }
+        } else {
+            CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(world.getServer());
+            if (!state.monsterikDefeated && !FearManager.consume(user, SHOCKWAVE_FEAR_COST)) {
+                notifyNotEnoughFear(user);
+                return TypedActionResult.fail(stack);
+            }
         }
 
         shockwave(world, user);
@@ -90,26 +80,28 @@ public class BloodMaceItem extends SwordItem {
         return TypedActionResult.success(stack, world.isClient());
     }
 
-    /**
-     * Клиентское предсказание нехватки страха — см. подробное объяснение
-     * в {@code BloodStaffItem.hasEnoughFearClientSide}. Реальная трата
-     * происходит только на сервере, в {@link FearManager#consume}.
-     */
     private static boolean hasEnoughFearClientSide(PlayerEntity user, float amount) {
         if (user.isCreative() || user.isSpectator()) {
             return true;
         }
+
+        boolean isCursed = dev.emi.trinkets.api.TrinketsApi.getTrinketComponent(user)
+            .map(comp -> comp.isEquipped(com.crimsonmoon.ModItems.BLOOD_NECKLACE))
+            .orElse(false);
+        
+        if (!isCursed) {
+            return true; 
+        }
+
         return com.crimsonmoon.client.gui.FearHudOverlay.currentFear + 1.0e-4f >= amount;
     }
 
-    /** Недостатньо "заряду" страху для каста — повідомляємо гравця замість тихої відмови. */
     private static void notifyNotEnoughFear(PlayerEntity user) {
         user.sendMessage(Text.translatable("item.crimsonmoon.not_enough_fear").formatted(Formatting.DARK_GRAY), true);
         user.getWorld().playSound(null, user.getBlockPos(), SoundEvents.BLOCK_FIRE_EXTINGUISH,
             SoundCategory.PLAYERS, 0.4f, 0.6f);
     }
 
-    // ==== Ефект при звичайному ударі (ЛКМ) ====
     @Override
     public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (!target.getWorld().isClient && target.getWorld() instanceof ServerWorld serverWorld) {
@@ -133,7 +125,6 @@ public class BloodMaceItem extends SwordItem {
         return super.postHit(stack, target, attacker);
     }
 
-    // ==== Shift + ПКМ — ударна хвиля ====
     private void shockwave(World world, PlayerEntity user) {
         if (world.isClient || !(world instanceof ServerWorld serverWorld)) {
             return;
@@ -148,7 +139,6 @@ public class BloodMaceItem extends SwordItem {
         double cy = user.getY() + 0.1;
         double cz = user.getZ();
 
-        // кільця часток, що розходяться від гравця — власне "видима" хвиля
         for (int ring = 0; ring < 3; ring++) {
             double radius = 1.0 + ring * 1.6;
             int points = (int) (radius * 12);

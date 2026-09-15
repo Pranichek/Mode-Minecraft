@@ -28,7 +28,6 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import com.crimsonmoon.world.CrimsonMoonWorldState;
 
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -102,15 +101,17 @@ public class NightmareEntity extends HostileEntity implements GeoEntity {
     }
 
     @Override
-    public void onDeath(DamageSource damageSource) {
+    public void onDeath(net.minecraft.entity.damage.DamageSource damageSource) {
         super.onDeath(damageSource);
 
-        if (this.getWorld() instanceof ServerWorld serverWorld) {
-            CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(serverWorld.getServer());
+        if (this.getWorld() instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+            com.crimsonmoon.world.CrimsonMoonWorldState state = com.crimsonmoon.world.CrimsonMoonWorldState.getServerState(serverWorld.getServer());
             state.nightmareDefeated = true;
             state.markDirty();
 
-            CrimsonMoonWorldState.checkAndDropKey(serverWorld, this);
+            this.dropItem(com.crimsonmoon.ModItems.BLOOD_MACE);
+
+            com.crimsonmoon.world.CrimsonMoonWorldState.checkAndDropKey(serverWorld, this);
         }
     }
 

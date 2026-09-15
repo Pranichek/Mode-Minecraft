@@ -312,7 +312,6 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
         return result;
     }
 
-    // ---- ОНОВЛЕНИЙ МЕТОД onDeath ДЛЯ БОКСЕРА ----
     @Override
     public void onDeath(DamageSource damageSource) {
         super.onDeath(damageSource);
@@ -322,11 +321,11 @@ public class BoxerEntity extends HostileEntity implements GeoEntity {
             state.boxerDefeated = true;
             state.markDirty();
 
-            // Перевіряємо чи вбиті всі три, щоб викинути ключ
+            this.dropItem(com.crimsonmoon.ModItems.BLOOD_BOW);
+
             CrimsonMoonWorldState.checkAndDropKey(serverWorld, this);
         }
     }
-    // ----------------------------------------------
 
     @Override
     protected SoundEvent getAmbientSound() {

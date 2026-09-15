@@ -13,7 +13,7 @@ import com.crimsonmoon.item.NoDropRegistry;
 import com.crimsonmoon.item.PendingItemStash;
 import com.crimsonmoon.world.ModWorldGen;
 import com.crimsonmoon.world.ThorncallerSpawnManager;
-import com.crimsonmoon.world.CrimsonMoonWorldState; // ДОБАВЛЕН ИМПОРТ СОСТОЯНИЯ
+import com.crimsonmoon.world.CrimsonMoonWorldState; 
 import com.crimsonmoon.entity.ThorncallerEntity;
 import com.crimsonmoon.entity.NightmareEntity;
 import net.minecraft.potion.Potions;
@@ -41,12 +41,43 @@ import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.world.Heightmap;
 
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.world.GameMode;
+import net.minecraft.util.math.Vec3d;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
+
 public class CrimsonMoon implements ModInitializer {
     public static final String MOD_ID = "crimsonmoon";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+    public static final Identifier XRAY_PACKET = new Identifier(MOD_ID, "xray_toggle");
+    public static class XraySession {
+        public int ticksLeft;
+        public Vec3d origin;
+        public XraySession(int ticks, Vec3d origin) { this.ticksLeft = ticks; this.origin = origin; }
+    }
+    public static final Map<UUID, XraySession> xraySessions = new HashMap<>();
+
     @Override
     public void onInitialize() {
+
+        ServerPlayNetworking.registerGlobalReceiver(XRAY_PACKET, (server, player, handler, buf, responseSender) -> {
+            server.execute(() -> {
+                boolean hasXray = TrinketsApi.getTrinketComponent(player)
+                    .map(comp -> comp.isEquipped(ModItems.XRAY_GLASSES))
+                    .orElse(false);
+
+                if (hasXray && !xraySessions.containsKey(player.getUuid())) {
+                    xraySessions.put(player.getUuid(), new XraySession(200, player.getPos()));
+                    player.changeGameMode(GameMode.SPECTATOR);
+                    player.sendMessage(Text.literal("Астральна проєкція активована! У вас є 10 секунд на розвідку.").formatted(Formatting.AQUA), true);
+                    player.playSound(SoundEvents.AMBIENT_CAVE.value(), SoundCategory.MASTER, 1.0f, 1.0f);
+                }
+            });
+        });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
@@ -80,9 +111,19 @@ public class CrimsonMoon implements ModInitializer {
             if(!world.isClient() && state.isOf(ModBlocks.MONOLIT)) {
                 ServerWorld serverWorld = (ServerWorld) world;
 
+                // 1. Обновляем Scoreboard (если твой журнал читает стадию оттуда)
+                net.minecraft.scoreboard.Scoreboard sb = serverWorld.getServer().getScoreboard();
+                net.minecraft.scoreboard.ScoreboardObjective obj = sb.getNullableObjective("crimson_monolit");
+                if (obj != null) {
+                    sb.getPlayerScore("#monolit", obj).setScore(2); // 2 = монолит сломан
+                }
+
                 for (ServerPlayerEntity target : serverWorld.getServer().getPlayerManager().getPlayerList()) {
                     if (!target.getCommandTags().contains("cursed_player")) {
                         applyCurse(target);
+                        
+                        // 2. Если журнал работает через пакеты, здесь нужно вызвать твой метод:
+                        // JournalNetworking.unlockEntry(target, "monolit"); 
                     }
                 }
 
@@ -92,6 +133,79 @@ public class CrimsonMoon implements ModInitializer {
         });
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
+            CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(server);
+
+            if (state.monsterikDefeated && !state.finaleCountdownActive) {
+                boolean glassesPickedUp = false;
+                for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+                    if (p.getInventory().containsAny(stack -> stack.isOf(ModItems.XRAY_GLASSES))) {
+                        glassesPickedUp = true;
+                        break;
+                    }
+                }
+
+                if (glassesPickedUp) {
+                    state.finaleCountdownActive = true;
+                    state.finaleTicks = 200; 
+                    state.markDirty();
+                    
+                    for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+                        p.sendMessage(Text.literal("Реліквія знайдена... Світ починає руйнуватися!").formatted(Formatting.DARK_PURPLE, Formatting.BOLD), false);
+                        p.playSound(SoundEvents.BLOCK_END_PORTAL_SPAWN, SoundCategory.MASTER, 1.0f, 1.0f);
+                    }
+                }
+            }
+
+            if (state.finaleCountdownActive && state.finaleTicks > 0) {
+                state.finaleTicks--;
+                
+                int secondsLeft = state.finaleTicks / 20;
+                if (state.finaleTicks % 20 == 0 && secondsLeft <= 10 && secondsLeft > 0) {
+                    for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+                        p.sendMessage(Text.literal("Повернення через: " + secondsLeft).formatted(Formatting.RED, Formatting.BOLD), true);
+                        p.playSound(SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.MASTER, 1.0f, 1.0f); 
+                    }
+                }
+
+                if (state.finaleTicks <= 0) {
+                    state.markDirty();
+                    removeCurse(server);
+                    ServerWorld overworld = server.getWorld(net.minecraft.world.World.OVERWORLD);
+                    if (overworld != null) {
+                        net.minecraft.util.math.BlockPos spawnPos = overworld.getSpawnPos();
+                        int safeY = overworld.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, spawnPos.getX(), spawnPos.getZ()) + 1;
+                        
+                        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+                            if (p.getServerWorld().getRegistryKey().equals(ModDimensions.BOSS_REALM)) {
+                                p.teleport(overworld, spawnPos.getX() + 0.5, safeY, spawnPos.getZ() + 0.5, p.getYaw(), p.getPitch());
+                                p.sendMessage(Text.literal("Кошмар завершено... Ви повернулися додому.").formatted(Formatting.GOLD, Formatting.BOLD), true);
+                                p.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.MASTER, 1.0f, 1.0f);
+                            }
+                        }
+                    }
+                }
+            }
+
+            Iterator<Map.Entry<UUID, XraySession>> it = xraySessions.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<UUID, XraySession> entry = it.next();
+                ServerPlayerEntity p = server.getPlayerManager().getPlayer(entry.getKey());
+                if (p != null) {
+                    XraySession session = entry.getValue();
+                    session.ticksLeft--;
+                    
+                    if (session.ticksLeft <= 0) {
+                        p.changeGameMode(GameMode.SURVIVAL);
+                        p.requestTeleport(session.origin.x, session.origin.y, session.origin.z);
+                        p.sendMessage(Text.literal("Режим інспектора вимкнено. Ваш дух повернувся у тіло!").formatted(Formatting.RED), true);
+                        p.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.MASTER, 1.0f, 1.0f);
+                        it.remove();
+                    }
+                } else {
+                    it.remove();
+                }
+            }
+
             boolean isWorldCursed = false;
 
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
@@ -144,10 +258,7 @@ public class CrimsonMoon implements ModInitializer {
                 }
             }
 
-            // --- Глобальная логика одноразового спавна босса ---
             if (server.getTicks() % 100 == 0) {
-                CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(server);
-
                 if (state.isCurseActive && !state.nightmareSpawned && !state.nightmareDefeated) {
                     for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
                         if (p.getY() < 55 && p.getCommandTags().contains("cursed_player")) {
@@ -162,14 +273,13 @@ public class CrimsonMoon implements ModInitializer {
 
                                     state.nightmareSpawned = true;
                                     state.markDirty();
-                                    break; // только один босс
+                                    break;
                                 }
                             }
                         }
                     }
                 }
             }
-            // ---------------------------------------------------
         });
 
         ModItemGroups.registerItemGroups();
@@ -187,6 +297,7 @@ public class CrimsonMoon implements ModInitializer {
         MonsterikBossCommand.register();
         FearManager.register();
         JournalNetworking.registerServer();
+        com.crimsonmoon.world.PortalManager.register();
 
         ThorncallerEntity.MINION_TYPE = ModEntities.BLOODWALKER;
 
@@ -205,6 +316,25 @@ public class CrimsonMoon implements ModInitializer {
         BrewingRecipeRegistry.registerPotionRecipe(Potions.STRENGTH, ModItems.BLOOD_INGOT, ModPotions.BATTLE_POTION);
         BrewingRecipeRegistry.registerPotionRecipe(Potions.SWIFTNESS, ModItems.BLOOD_INGOT, ModPotions.BERSERKER_POTION);
         BrewingRecipeRegistry.registerPotionRecipe(Potions.REGENERATION, ModItems.BLOOD_INGOT, ModPotions.HEROIC_POTION);
+    }
+
+    public static void removeCurse(net.minecraft.server.MinecraftServer server) {
+        CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(server);
+        state.isCurseActive = false;
+        state.markDirty();
+
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            if (player.getCommandTags().contains("cursed_player")) {
+                player.removeScoreboardTag("cursed_player");
+                player.removeStatusEffect(StatusEffects.BLINDNESS);
+                TrinketsApi.getTrinketComponent(player).ifPresent(trinkets -> {
+                    trinkets.getInventory().get("chest").get("necklace").setStack(0, ItemStack.EMPTY);
+                });
+                player.sendMessage(Text.literal("Прокляття знято! Світ повертається до норми.").formatted(Formatting.GREEN, Formatting.BOLD), true);
+            }
+        }
+        ServerWorld overworld = server.getWorld(net.minecraft.world.World.OVERWORLD);
+        if (overworld != null) overworld.setWeather(6000, 0, false, false); 
     }
 
     private static void applyCurse(ServerPlayerEntity target) {
@@ -362,7 +492,6 @@ public class CrimsonMoon implements ModInitializer {
 
         template.place(world, finalSpawnPos, finalSpawnPos, placementData, world.random, 2);
 
-        // запоминаем координаты монолита для журнала (первый этап)
         CrimsonMoonWorldState state = CrimsonMoonWorldState.getServerState(world.getServer());
         state.monolitPlaced = true;
         state.monolitX = finalSpawnPos.getX();
@@ -372,7 +501,6 @@ public class CrimsonMoon implements ModInitializer {
     }
 
     private static BlockPos findSpaciousCave(ServerWorld world, BlockPos center, int radius) {
-        // 1) Ищем готовое место: твёрдый пол + 2 клетки воздуха
         for (int i = 0; i < 80; i++) {
             BlockPos checkPos = center.add(
                 world.random.nextInt(radius * 2) - radius,
@@ -389,9 +517,7 @@ public class CrimsonMoon implements ModInitializer {
             }
         }
 
-        // 2) Готового не нашлось — берём точку рядом с игроком и ВЫКАПЫВАЕМ место под босса.
-        //    Босс всё равно сам расчищает вокруг себя (freeSpaceAround), так что появится нормально.
-        int dx = world.random.nextInt(7) - 3; // 3 блока в сторону
+        int dx = world.random.nextInt(7) - 3;
         int dz = world.random.nextInt(7) - 3;
         BlockPos spot = center.add(dx, 0, dz);
 

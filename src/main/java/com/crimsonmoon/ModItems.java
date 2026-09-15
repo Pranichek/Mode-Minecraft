@@ -10,22 +10,24 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.item.ArmorItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.client.item.TooltipContext;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.World;
+import java.util.List;
 
 import com.crimsonmoon.item.BloodNecklaceItem;
 import com.crimsonmoon.item.CrimsonShieldItem;
 import com.crimsonmoon.item.PortalKeyItem;
-
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
-
 import com.crimsonmoon.item.BloodStaffItem;
 import com.crimsonmoon.item.BloodMaceItem;
 import com.crimsonmoon.item.BloodBowItem;
 import com.crimsonmoon.item.BloodClotItem;
 
-
-
 public class ModItems {
-    // яйця
 
     public static final Item THORNCALLER_SPAWN_EGG = registerItem(
         "thorncaller_spawn_egg",
@@ -42,7 +44,6 @@ public class ModItems {
         new SpawnEggItem(ModEntities.NIGHTMARE, 0x1a1a1a, 0x8b0000, new Item.Settings())
     );
     
-    // інструменти
     public static final Item BLOOD_SWORD = registerItem(
         "blood_sword",
         new SwordItem(ModToolMaterials.BLOOD, 3, -2.4f, new Item.Settings())
@@ -88,7 +89,6 @@ public class ModItems {
         new BloodClotItem(new Item.Settings())
     );
 
-    // руди
     public static final Item BLOOD_STONE = registerItem(
         "blood_stone",
         new Item(new Item.Settings())
@@ -104,7 +104,6 @@ public class ModItems {
         new Item(new Item.Settings())
     );
 
-    // броня
     public static final Item BLOOD_HELMET = registerItem(
         "blood_helmet",
         new CrimsonArmorItem(ModArmorMaterials.CRIMSON, 
@@ -140,6 +139,26 @@ public class ModItems {
 
     public static final Item BLOOD_NECKLACE = registerItem("blood_necklace", 
         new BloodNecklaceItem(new FabricItemSettings().maxCount(1)));
+
+    public static final Item XRAY_GLASSES = registerItem("xray_glasses", new Item(new FabricItemSettings().maxCount(1)) {
+        
+        @Override
+        public Text getName(ItemStack stack) {
+            return Text.literal("Окуляри Астральної Проєкції").formatted(Formatting.AQUA, Formatting.BOLD);
+        }
+
+        @Override
+        public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+            tooltip.add(Text.literal("Реліквія переможеного кошмару").formatted(Formatting.DARK_PURPLE, Formatting.ITALIC));
+            tooltip.add(Text.literal(" "));
+            tooltip.add(Text.literal("Як використовувати:").formatted(Formatting.GRAY));
+            tooltip.add(Text.literal("1. Покладіть у слот для капелюха/обличчя (Trinkets)").formatted(Formatting.GRAY));
+            tooltip.add(Text.literal("2. Натисніть клавішу [R]").formatted(Formatting.GRAY));
+            tooltip.add(Text.literal(" "));
+            tooltip.add(Text.literal("Дає можливість залишити тіло").formatted(Formatting.GOLD));
+            tooltip.add(Text.literal("та літати крізь стіни на 10 секунд!").formatted(Formatting.GOLD));
+        }
+    });
 
     private static Item registerItem(String name, Item item){
         return Registry.register(

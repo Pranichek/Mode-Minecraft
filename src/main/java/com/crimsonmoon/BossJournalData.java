@@ -2,12 +2,12 @@ package com.crimsonmoon;
 
 import net.minecraft.network.PacketByteBuf;
 
-/** Статусы боссов + координаты колизея и монолита — сервер шлёт клиенту для журнала. */
 public class BossJournalData {
     public boolean nightmareDefeated;
     public boolean boxerDefeated;
     public boolean thorncallerDefeated;
     public boolean monsterikDefeated;
+    public boolean isCurseActive;
 
     public boolean arenaPlaced;
     public int arenaX, arenaY, arenaZ;
@@ -20,6 +20,7 @@ public class BossJournalData {
         buf.writeBoolean(boxerDefeated);
         buf.writeBoolean(thorncallerDefeated);
         buf.writeBoolean(monsterikDefeated);
+        buf.writeBoolean(isCurseActive);
         buf.writeBoolean(arenaPlaced);
         buf.writeInt(arenaX);
         buf.writeInt(arenaY);
@@ -36,6 +37,7 @@ public class BossJournalData {
         d.boxerDefeated = buf.readBoolean();
         d.thorncallerDefeated = buf.readBoolean();
         d.monsterikDefeated = buf.readBoolean();
+        d.isCurseActive = buf.readBoolean();
         d.arenaPlaced = buf.readBoolean();
         d.arenaX = buf.readInt();
         d.arenaY = buf.readInt();
