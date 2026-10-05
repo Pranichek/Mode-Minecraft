@@ -1,0 +1,33 @@
+{
+    "watcher_theme": {
+        "subtitle": "subtitle.crimsonmoon.watcher_theme",
+        "sounds": [
+        { "name": "crimsonmoon:watcher_theme", "stream": true }
+        ]
+    },
+    "nightmare_growl": {
+        "subtitle": "subtitle.crimsonmoon.nightmare_growl",
+        "sounds": [
+        { "name": "crimsonmoon:nightmare/growl" }
+        ]
+    },
+    "nightmare_hurt": {
+        "subtitle": "subtitle.crimsonmoon.nightmare_hurt",
+        "sounds": [
+        { "name": "crimsonmoon:nightmare/hurt" }
+        ]
+    },
+    "nightmare_chase": {
+        "subtitle": "subtitle.crimsonmoon.nightmare_chase",
+        "sounds": [
+        { "name": "crimsonmoon:nightmare/chase" }
+        ]
+    },
+    "heartbeat": {
+    "category": "ambient",
+    "subtitle": "subtitles.crimsonmoon.heartbeat",
+    "sounds": [
+    "crimsonmoon:heartbeat"
+    ]
+  }
+}

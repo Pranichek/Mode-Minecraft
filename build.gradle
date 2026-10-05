@@ -1,0 +1,126 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+repositories {
+    maven {
+        name = "GeckoLib"
+        url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+    }
+    maven {
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/releases/"
+    }
+    maven {
+        name = "LadysnakeMods"
+        url = "https://maven.ladysnake.org/releases"
+    }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content { includeGroup "maven.modrinth" }
+    }
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	// Fabric API. This is technically optional, but you probably want it anyway.
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// GeckoLib — модели/анимации для Nightmare
+	// include(...) зашивает GeckoLib прямо внутрь jar мода (Jar-in-Jar) —
+	// игроку не нужно ставить GeckoLib отдельно
+	include modImplementation("software.bernie.geckolib:geckolib-fabric-1.20.1:${project.geckolib_version}")
+
+	// Trinkets API
+    modImplementation "dev.emi:trinkets:3.7.2"
+
+    // Cardinal Components (нужен для работы Trinkets)
+    modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.2.2"
+    modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:5.2.2"
+
+    // Disable Custom Worlds Advice — убирает окно "Experimental Features".
+    // Без include: грузится в дев-среде для тестов. Для релиза оформим отдельно.
+    modImplementation "maven.modrinth:dcwa:4.1"
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 17
+}
+
+java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this line, sources will not be generated.
+	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
+
+jar {
+	def projectName = project.name
+	inputs.property "projectName", projectName
+
+	from("LICENSE") {
+		rename { "${it}_$projectName"}
+	}
+}
+
+// configure the maven publication
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			from components.java
+		}
+	}
+
+	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+	repositories {
+		// Add repositories to publish to here.
+		// Notice: This block does NOT have the same function as the block in the top level.
+		// The repositories here will be used for publishing your artifact, not for
+		// retrieving dependencies.
+
+		// GeckoLib — используется для кастомной модели/анимаций сущности Nightmare
+		maven {
+			name = "GeckoLib"
+			url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+		}
+
+		// Ссылки для Trinkets и Cardinal Components
+		maven {
+			name = "TerraformersMC"
+			url = "https://maven.terraformersmc.com/releases/"
+		}
+		maven {
+			name = "LadysnakeMods"
+			url = "https://maven.ladysnake.org/releases"
+		}
+	}
+}
+
+loom {
+	runs {
+		client {
+			property "geckolib.disable_examples", "true"
+		}
+	}
+}

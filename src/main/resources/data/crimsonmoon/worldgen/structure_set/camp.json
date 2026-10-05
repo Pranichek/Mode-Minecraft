@@ -1,0 +1,19 @@
+{
+    "placement": {
+        "type": "minecraft:random_spread",
+        "spacing": 24,
+        "separation": 8,
+        "salt": 128374934,
+        "exclusion_zone": {
+            "other_set": "minecraft:villages",
+            "chunk_count": 10
+        }
+    },
+
+    "structures": [
+        {
+        "structure": "crimsonmoon:camp",
+        "weight": 1
+        }
+    ]
+}

@@ -1,0 +1,37 @@
+{
+    "display": {
+        "icon": {
+        "item": "crimsonmoon:blood_ingot"
+        },
+        "title": {
+        "text": "Перший слиток"
+        },
+        "description": {
+        "text": "Переплавте перший кровавий слиток"
+        },
+        "frame": "task",
+        "show_toast": true,
+        "announce_to_chat": true,
+        "hidden": false
+    },
+    "parent": "crimsonmoon:first_blood_stone",
+    "criteria": {
+        "has_blood_ingot": {
+        "trigger": "minecraft:inventory_changed",
+        "conditions": {
+            "items": [
+            {
+                "items": [
+                    "crimsonmoon:blood_ingot"
+                ]
+            }
+            ]
+        }
+    }
+    },
+    "requirements": [
+        [
+        "has_blood_ingot"
+        ]
+    ]
+}
