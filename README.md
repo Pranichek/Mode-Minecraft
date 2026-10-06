@@ -318,7 +318,89 @@
 
 ---
 
-### 2.5 Фінал і зняття прокляття
+### 2.5 Особлива зброя босів
+
+Три боси після смерті залишають унікальну зброю. Усі три предмети лежать у папці [item](https://github.com/Pranichek/Mode-Minecraft/tree/main/src/main/java/com/crimsonmoon/item), а снаряди для них — у папці [entity](https://github.com/Pranichek/Mode-Minecraft/tree/main/src/main/java/com/crimsonmoon/entity).
+
+| Зброя | Хто дає | Файл предмета | Снаряд |
+|-------|---------|---------------|--------|
+| Кривава булава (`BLOOD_MACE`) | Жах | [BloodMaceItem.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/item/BloodMaceItem.java) | немає (ближній бій) |
+| Кривавий посох (`BLOOD_STAFF`) | Терновик | [BloodStaffItem.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/item/BloodStaffItem.java) | [BloodBoltEntity.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/entity/BloodBoltEntity.java) |
+| Кривавий лук (`BLOOD_BOW`) | Боксер | [BloodBowItem.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/item/BloodBowItem.java) | [BloodClotEntity.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/entity/BloodClotEntity.java) |
+
+#### Ресурс «Страх»
+
+Здібності булави й посоха **коштують страх** ([FearManager.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/FearManager.java)). Шкала страху (0–100) росте, коли гравець поруч зі страшними мобами, у темряві або на арені фінального боса, і малюється на екрані як смужка «Страх».
+
+Перевірка влаштована у два кроки, щоб гра не «лагала» для гравця:
+1. **Клієнт** (`hasEnoughFearClientSide`) дивиться на значення зі шкали HUD і вирішує, чи показувати анімацію.
+2. **Сервер** (`FearManager.consume`) є справжнім суддею: сам списує страх і відхиляє дію, якщо його не вистачило («Not enough Fear...»).
+
+Після перемоги над Монстеріком (`monsterikDefeated`) зброя стає безкоштовною: сервер більше не списує страх.
+
+---
+
+#### Кривава булава
+
+**Файл:** [BloodMaceItem.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/item/BloodMaceItem.java) (наслідує `SwordItem`)
+
+| Дія | Що відбувається |
+|-----|-----------------|
+| Звичайний удар | Булава з уроном 7, швидкістю атаки −3.2 (повільний, важкий). У `postHit` на цілі з'являються криваві частинки та звук сильного удару |
+| **Shift + ПКМ** | **Ударна хвиля** (`shockwave`) |
+
+**Ударна хвиля:**
+- вартість: **18 страху**, перезарядка **7 секунд** (`getItemCooldownManager`);
+- радіус **4.5 блоків**, урон **8** усім живим істотам навколо (крім самого гравця);
+- відкидання: горизонтальне 2.2 і вгору 0.6; напрямок рахується від гравця до цілі;
+- візуал: три кільця червоних частинок, `SONIC_BOOM` і вибух, звуки ковадла та Ravager.
+
+![Булава](readme_media/mace.gif)
+
+---
+
+#### Кривавий посох
+
+**Файли:** [BloodStaffItem.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/item/BloodStaffItem.java), [BloodBoltEntity.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/entity/BloodBoltEntity.java)
+
+Посох має **дві здібності з окремими перезарядками**. Час готовності зберігається в NBT самого предмета (`BoltReadyTick`, `SlamReadyTick`), тож кожен посох рахує свої таймери незалежно.
+
+| Дія | Вартість страху | Перезарядка | Що відбувається |
+|-----|-----------------|-------------|-----------------|
+| **ПКМ** | 5 | 1 секунда | `shootBolt`: випускає **кривавий снаряд** (`BloodBoltEntity`) у напрямку погляду зі швидкістю 1.6. Урон **12** (магічний, `indirectMagic`), частинки сліду, зникає при влучанні в моба чи блок |
+| **Shift + ПКМ** | 20 | 13 секунд | `groundSlam`: **удар по землі** в радіусі **10 блоків**, урон **24**, відкидання 2.2 |
+
+![Посох](readme_media/staff.gif)
+
+---
+
+#### Кривавий лук
+
+**Файли:** [BloodBowItem.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/item/BloodBowItem.java), [BloodClotEntity.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/entity/BloodClotEntity.java)
+
+Лук працює як звичайний (тримати ПКМ, щоб натягнути, відпустити, щоб вистрілити), але має дві відмінності:
+
+1. **Не потребує стріл.** Замість стріли він запускає **згусток крові** (`BloodClotEntity`), а ціною пострілу є міцність самого лука (`stack.damage(1, ...)`).
+2. **Сила пострілу залежить від натягу.** Функція `getPullProgress` дає значення від 0 до 1 (повний натяг приблизно за 1 секунду). Менше 0.1 — пострілу немає, швидкість згустку = `натяг × 3`.
+
+Влучання згустка: урон **5** і ефект **Слабкість** (`WEAKNESS`) на 3 секунди. Згусток живе максимум 100 тиків (5 секунд), потім зникає, а при влучанні залишає частинки крові. Страх лук **не витрачає**.
+
+![Лук](readme_media/bow.gif)
+
+---
+
+#### Порівняння
+
+| | Булава | Посох | Лук |
+|---|--------|-------|-----|
+| Тип | ближній бій + зона | далекобійний + зона | далекобійний |
+| Здібності | ударна хвиля | снаряд + удар по землі | згусток крові |
+| Витрата страху | 18 | 5 / 20 | 0 |
+| Перезарядка | 7 с | 1 с / 13 с | залежить від натягу |
+| Найбільший урон | 8 (хвиля) | 24 (удар по землі) | 5 + Слабкість |
+
+
+### 2.6 Фінал і зняття прокляття
 
 Реалізовано в `ServerTickEvents.END_SERVER_TICK` у [CrimsonMoon.java](https://github.com/Pranichek/Mode-Minecraft/blob/main/src/main/java/com/crimsonmoon/CrimsonMoon.java):
 
