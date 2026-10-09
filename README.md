@@ -1,18 +1,6 @@
 # Crimson Moon
 
-<p align="center">
-  <img src="readme_media/banner.png" alt="Crimson Moon" width="100%">
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Minecraft-1.20.1-3C8527" alt="Minecraft 1.20.1">
-  <img src="https://img.shields.io/badge/Loader-Fabric-DBD0B4" alt="Fabric">
-  <img src="https://img.shields.io/badge/Java-17-ED8B00" alt="Java 17">
-  <img src="https://img.shields.io/badge/version-1.0.0-B22222" alt="Version 1.0.0">
-</p>
-
 ---
-
 <a name="articles"></a>
 
 ## Зміст (Table of contents)
