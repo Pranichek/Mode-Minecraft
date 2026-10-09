@@ -1,7 +1,5 @@
 # Crimson Moon
 
----
-
 <a name="articles"></a>
 
 ## Зміст (Table of contents)
