@@ -2,16 +2,18 @@
 	"schemaVersion": 1,
 	"id": "crimsonmoon",
 	"version": "${version}",
-	"name": "CrimsonMoon",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Crimson Moon",
+	"description": "Проклятий світ Кривавого Місяця: зруйнуй Моноліт, щоб пробудити прокляття, здолай трьох стражів — Жах у печерах, Боксера в колізеї та Терновика в джунглях — і відкрий портал до фінального боса, Монстеріка. Веди хроніку полювання у Журналі (клавіша J).",
 	"authors": [
-		"Me!"
+		"Hrinchenko Volodymyr",
+		"Evgeniy",
+		"Alina"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/Pranichek/Mode-Minecraft",
+		"sources": "https://github.com/Pranichek/Mode-Minecraft"
 	},
-	"license": "CC0-1.0",
+	"license": "ARR",
 	"icon": "assets/crimsonmoon/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -27,6 +29,8 @@
 		"fabricloader": ">=0.19.3",
 		"minecraft": "~1.20.1",
 		"java": ">=17",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"geckolib": "*",
+		"trinkets": "*"
 	}
 }
