@@ -1,6 +1,7 @@
 # Crimson Moon
 
 ---
+
 <a name="articles"></a>
 
 ## Зміст (Table of contents)
@@ -53,15 +54,6 @@
 
 **Crimson Moon** — це масштабний хоррор-пригодницький мод для **Minecraft**, розроблений на базі **Fabric API**. Мод змінює звичний кубічний світ, перетворюючи його на прокляте місце. Зруйнуйте Моноліт, пробудіть прадавнє прокляття та здолайте чотирьох унікальних босів, кожен з яких має власний штучний інтелект, арену та бойові механіки. Відстежуйте свій прогрес за допомогою вбудованого журналу босів та пробивайтеся до фінальної битви за межами звичного виміру.
 
-<p align="center">
-  <img src="readme_media/preview_bosses.png" alt="Боси" width="49%">
-  <img src="readme_media/preview_colosseum.png" alt="Колізей" width="49%">
-</p>
-<p align="center">
-  <img src="readme_media/preview_monolith.png" alt="Моноліт" width="49%">
-  <img src="readme_media/journal.png" alt="Журнал босів" width="49%">
-</p>
-
 <details>
 <summary>English version</summary>
 
@@ -80,10 +72,8 @@
 | Учасник | Роль | Що робив |
 |---------|------|----------|
 | [Володимир](https://github.com/Pranichek) | Team Lead, Java-розробник | Розподіляв задачі та планував зустрічі команди, писав програмну логіку мода, підготував розділи README про встановлення, запуск і структуру проєкту |
-| Євгеній | Java-розробник | Писав програмну логіку мода, описав основні модулі та механіки в README, записав GIF-демонстрації механік |
-| Аліна | Дизайнерка | Створила 3D-моделі, текстури та анімації босів у Blockbench, написала концепцію проєкту та висновок |
-
-<!-- TODO: додати посилання на GitHub Євгенія та Аліни, перевірити розподіл ролей -->
+| [Євгеній](https://github.com/BilashEvgen) | Java-розробник | Писав програмну логіку мода, описав основні модулі та механіки в README, записав GIF-демонстрації механік |
+| [Аліна](https://github.com/AlinaSoruhan) | Дизайнерка | Створила 3D-моделі, текстури та анімації босів у Blockbench, написала концепцію проєкту та висновок |
 
 <details>
 <summary>English version</summary>
@@ -92,9 +82,9 @@ The project was built by a team of three. Each member was responsible for their 
 
 | Member | Role | Contribution |
 |--------|------|--------------|
-| Volodymyr | Team Lead, Java developer | Distributed tasks and planned team meetings, wrote the mod's game logic, prepared the README sections on installation, launching and project structure |
-| Yevhenii | Java developer | Wrote the mod's game logic, documented the main modules and mechanics in the README, recorded the GIF demos of the mechanics |
-| Alina | Designer | Created the boss 3D models, textures and animations in Blockbench, wrote the project concept and conclusion |
+| [Volodymyr](https://github.com/Pranichek) | Team Lead, Java developer | Distributed tasks and planned team meetings, wrote the mod's game logic, prepared the README sections on installation, launching and project structure |
+| [Yevhenii](https://github.com/BilashEvgen) | Java developer | Wrote the mod's game logic, documented the main modules and mechanics in the README, recorded the GIF demos of the mechanics |
+| [Alina](https://github.com/AlinaSoruhan) | Designer | Created the boss 3D models, textures and animations in Blockbench, wrote the project concept and conclusion |
 
 </details>
 
@@ -104,25 +94,23 @@ The project was built by a team of three. Each member was responsible for their 
 
 ## Де завантажити мод
 
-Мод опубліковано на CurseForge під назвою **Crimson Moon: The Curse**. Актуальна версія — **1.0.0** (`crimsonmoon-1.0.0.jar`) для **Minecraft 1.20.1** на **Fabric**.
+Мод опубліковано на двох платформах: на CurseForge під назвою **Crimson Moon: The Curse** і на Planet Minecraft під назвою **Crimson Moon**. Актуальна версія — **1.0.0** (`crimsonmoon-1.0.0.jar`) для **Minecraft 1.20.1** на **Fabric**.
 
 | Платформа | Посилання |
 |-----------|-----------|
 | CurseForge | [Crimson Moon: The Curse](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) |
-| Modrinth | незабаром <!-- TODO: вставити посилання після публікації --> |
-| Planet Minecraft | незабаром <!-- TODO: вставити посилання після публікації --> |
+| Planet Minecraft | [Crimson Moon](https://www.planetminecraft.com/mod/crimson-moon-7049895/) |
 | GitHub (вихідний код) | [Mode-Minecraft](https://github.com/Pranichek/Mode-Minecraft) |
 
 <details>
 <summary>English version</summary>
 
-The mod is published on CurseForge as **Crimson Moon: The Curse**. The current version is **1.0.0** (`crimsonmoon-1.0.0.jar`) for **Minecraft 1.20.1** on **Fabric**.
+The mod is published on two platforms: on CurseForge as **Crimson Moon: The Curse** and on Planet Minecraft as **Crimson Moon**. The current version is **1.0.0** (`crimsonmoon-1.0.0.jar`) for **Minecraft 1.20.1** on **Fabric**.
 
 | Platform | Link |
 |----------|------|
 | CurseForge | [Crimson Moon: The Curse](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) |
-| Modrinth | coming soon |
-| Planet Minecraft | coming soon |
+| Planet Minecraft | [Crimson Moon](https://www.planetminecraft.com/mod/crimson-moon-7049895/) |
 | GitHub (source code) | [Mode-Minecraft](https://github.com/Pranichek/Mode-Minecraft) |
 
 </details>
@@ -141,7 +129,7 @@ The mod is published on CurseForge as **Crimson Moon: The Curse**. The current v
 |----|--------|----------|
 | Minecraft Java Edition | 1.20.1 | Офіційний лаунчер Minecraft |
 | Fabric Loader | остання для 1.20.1 | [fabricmc.net](https://fabricmc.net/use/installer/) |
-| **Crimson Moon** | 1.0.0 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) |
+| **Crimson Moon** | 1.0.0 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) або [Planet Minecraft](https://www.planetminecraft.com/mod/crimson-moon-7049895/) |
 | Fabric API | для 1.20.1 | [Modrinth](https://modrinth.com/mod/fabric-api) |
 | GeckoLib | для 1.20.1 (Fabric) | [Modrinth](https://modrinth.com/mod/geckolib) |
 | Trinkets | для 1.20.1 | [Modrinth](https://modrinth.com/mod/trinkets) |
@@ -160,11 +148,9 @@ The mod is published on CurseForge as **Crimson Moon: The Curse**. The current v
 1. **Встановіть Minecraft 1.20.1.** Відкрийте офіційний лаунчер, на вкладці «Встановлення» створіть конфігурацію з версією `release 1.20.1` і запустіть її один раз, щоб гра завантажила свої файли.
 2. **Встановіть Fabric.** Завантажте Fabric Installer з [fabricmc.net](https://fabricmc.net/use/installer/) і запустіть його. Виберіть вкладку **Client**, версію Minecraft **1.20.1**, останню версію Loader і натисніть **Install**. У лаунчері з'явиться профіль `fabric-loader-1.20.1`.
 
-   ![Fabric Installer](readme_media/install_fabric.png)
 
-3. **Завантажте мод.** На сторінці [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) відкрийте вкладку **Files** і завантажте `crimsonmoon-1.0.0.jar`.
+3. **Завантажте мод.** На сторінці [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) відкрийте вкладку **Files** і завантажте `crimsonmoon-1.0.0.jar`. Також мод можна завантажити з [Planet Minecraft](https://www.planetminecraft.com/mod/crimson-moon-7049895/) кнопкою **Download Mod**.
 
-   ![Сторінка мода на CurseForge](readme_media/install_curseforge.png)
 
 4. **Завантажте залежності.** Для кожного мода з таблиці вище відкрийте вкладку **Versions**, виставте фільтри **1.20.1** і **Fabric** та завантажте `.jar`-файл.
 5. **Відкрийте папку `mods`.**
@@ -173,11 +159,9 @@ The mod is published on CurseForge as **Crimson Moon: The Curse**. The current v
    - Linux: `~/.minecraft/mods`.
 6. **Покладіть усі `.jar` у папку `mods`**: сам мод і п'ять залежностей. Розпаковувати нічого не потрібно.
 
-   ![Папка mods з усіма файлами](readme_media/install_mods_folder.png)
 
 7. **Запустіть гру.** У лаунчері виберіть профіль `fabric-loader-1.20.1` і натисніть **Грати**.
 
-   ![Профіль Fabric у лаунчері](readme_media/install_launcher.png)
 
 > Якщо гра не запускається, найчастіше бракує однієї із залежностей або файл завантажено не для 1.20.1. Fabric зазвичай показує вікно помилки з назвою мода, якого не вистачає.
 
@@ -192,7 +176,7 @@ Below is a step-by-step guide to installing Crimson Moon on your computer. The m
 |------|---------|-----------------|
 | Minecraft Java Edition | 1.20.1 | Official Minecraft Launcher |
 | Fabric Loader | latest for 1.20.1 | [fabricmc.net](https://fabricmc.net/use/installer/) |
-| **Crimson Moon** | 1.0.0 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) |
+| **Crimson Moon** | 1.0.0 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) or [Planet Minecraft](https://www.planetminecraft.com/mod/crimson-moon-7049895/) |
 | Fabric API | for 1.20.1 | [Modrinth](https://modrinth.com/mod/fabric-api) |
 | GeckoLib | for 1.20.1 (Fabric) | [Modrinth](https://modrinth.com/mod/geckolib) |
 | Trinkets | for 1.20.1 | [Modrinth](https://modrinth.com/mod/trinkets) |
@@ -210,7 +194,7 @@ Why each dependency is needed:
 
 1. **Install Minecraft 1.20.1.** Open the official launcher, create an installation with version `release 1.20.1` on the **Installations** tab and launch it once so the game downloads its files.
 2. **Install Fabric.** Download Fabric Installer from [fabricmc.net](https://fabricmc.net/use/installer/) and run it. Choose the **Client** tab, Minecraft version **1.20.1**, the latest Loader version and click **Install**. A `fabric-loader-1.20.1` profile will appear in the launcher.
-3. **Download the mod.** On the [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) page, open the **Files** tab and download `crimsonmoon-1.0.0.jar`.
+3. **Download the mod.** On the [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) page, open the **Files** tab and download `crimsonmoon-1.0.0.jar`. You can also download the mod from [Planet Minecraft](https://www.planetminecraft.com/mod/crimson-moon-7049895/) with the **Download Mod** button.
 4. **Download the dependencies.** For each mod in the table above, open the **Versions** tab, set the **1.20.1** and **Fabric** filters and download the `.jar` file.
 5. **Open the `mods` folder.**
    - Windows: press `Win + R`, type `%appdata%\.minecraft`, press Enter and open the `mods` folder (create it if it does not exist);
@@ -239,11 +223,9 @@ Why each dependency is needed:
 
 1. **Знайдіть Моноліт.** Під час першого входу мод ставить структуру Моноліту на відстані від 20 до 1000 блоків від гравця. Натисніть **J** — у журналі босів видно координати Моноліту.
 
-   ![Журнал із координатами Моноліту](readme_media/start_journal.png)
 
 2. **Зруйнуйте Моноліт.** Як тільки ви зламаєте головний блок, світ накриває прокляття: починається гроза, накладається сліпота, лунають моторошні звуки, а в слоті Trinkets з'являється Криваве намисто.
 
-   ![Руйнування Моноліту](readme_media/start_monolith.gif)
 
 3. **Полюйте на трьох вартових** у будь-якому порядку:
    - **Жах** — спустіться в печери нижче Y = 55;
@@ -1423,12 +1405,22 @@ Implemented in `ServerTickEvents.END_SERVER_TICK` in `CrimsonMoon.java`:
 
 Розробка модифікації такого рівня зіштовхнула нас із серйозними технічними викликами, які вимагали нестандартних рішень:
 
-<!-- TODO: розділ ще не заповнений — додати проблеми, що виникали під час написання коду, і як їх вирішили -->
+- **Створення та додавання моделей.** Не завжди з першого разу вдавалося створити підходящу модель і правильно додати її в Minecraft. Модель, яка добре виглядала в Blockbench, у грі могла відображатися не так, як ми задумували, тому деякі моделі босів доводилося кілька разів переробляти й повторно додавати в мод, поки вони не почали коректно відображатися та анімуватися.
+- **Відсутність стандартних рішень.** Для багатьох наших задач у Minecraft і Fabric API не було готових стандартних рішень, тому доводилося шукати й підключати додаткові бібліотеки: GeckoLib — для анімованих моделей босів, Trinkets і Cardinal Components API — для окремого слота Кривавого намиста, Disable Custom Worlds Advice — щоб прибрати попередження, яке з'являється через власний вимір арени.
+- **Брак досвіду в розробці.** Це був наш перший проєкт із модингу, тому ми не завжди одразу знаходили оптимальне рішення. Частину механік спочатку реалізовували так, як уміли, а потім переписували, коли під час тестування з'являлися баги, лаги або ставало складно розширювати код.
+
+Кожна з цих проблем забирала час, але саме вони навчили нас найбільшого: шукати документацію, розбиратися в чужих бібліотеках і критично оцінювати власні рішення.
 
 <details>
 <summary>English version</summary>
 
 Developing a mod of this scale confronted us with serious technical challenges that required non-standard solutions:
+
+- **Creating and adding models.** We did not always manage to create a suitable model and add it to Minecraft correctly on the first try. A model that looked good in Blockbench could appear in the game differently from what we intended, so some boss models had to be reworked and added to the mod again several times until they displayed and animated correctly.
+- **No standard solutions.** For many of our tasks, Minecraft and Fabric API had no ready-made standard solutions, so we had to find and add extra libraries: GeckoLib for the animated boss models, Trinkets and Cardinal Components API for a separate Blood Necklace slot, and Disable Custom Worlds Advice to remove the warning caused by the custom arena dimension.
+- **Lack of development experience.** This was our first modding project, so we did not always find the optimal solution right away. Some mechanics were first implemented the way we knew how and then rewritten when bugs or lag showed up during testing, or when the code became hard to extend.
+
+Each of these problems took time, but they are exactly what taught us the most: searching the documentation, understanding other people's libraries and critically evaluating our own decisions.
 
 </details>
 
@@ -1475,6 +1467,8 @@ This project became a leap from a basic understanding of programming to developm
 
 Один з цікавих висновків, який ми зробили, полягає в тому, що через неправильно написаний код або міксіни є ризик перевантажити пам'ять сервера або викликати краш гри в іншого користувача без його відома. Це викликає питання безпеки коду, і ми з'ясували, наскільки важливо правильно налаштовувати з'єднання та тригери, щоб не допустити помилок в ігровому процесі.
 
+У підсумку наш мод вийшов за межі навчального проєкту: ми опублікували його на CurseForge і Planet Minecraft, і на момент написання README його завантажили **47 разів** із [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) та **21 раз** із [Planet Minecraft](https://www.planetminecraft.com/mod/crimson-moon-7049895/). Для нас це перший досвід публікації власного продукту й показник того, що наша робота цікава реальним гравцям.
+
 Ці знання стануть в нагоді для майбутніх проєктів, адже ми не тільки розв'язали практичні проблеми розробки, а й отримали теоретичні знання, які є основою для розуміння сучасних технологій обміну даними, математики та безпеки програмного забезпечення.
 
 <details>
@@ -1495,6 +1489,8 @@ An important aspect of working on this project was understanding data exchange b
 While testing the game, we ran into desynchronization problems and lag when spawning large colosseums and arenas, which made us look for ways to keep the server and clients stable. We learned to optimize connections and world generation to avoid constant disconnects or freezes.
 
 One interesting conclusion we made is that badly written code or mixins can overload the server's memory or crash another user's game without them knowing. This raises the question of code safety, and we found out how important it is to configure connections and triggers properly to avoid errors in gameplay.
+
+In the end, our mod went beyond a study project: we published it on CurseForge and Planet Minecraft, and at the time of writing this README it has been downloaded **47 times** from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) and **21 times** from [Planet Minecraft](https://www.planetminecraft.com/mod/crimson-moon-7049895/). For us it is our first experience of publishing our own product and a sign that our work is interesting to real players.
 
 This knowledge will be useful for future projects, because we not only solved practical development problems but also gained the theoretical knowledge that underlies modern data exchange technologies, mathematics and software security.
 
