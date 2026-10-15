@@ -3,8 +3,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Minecraft-1.20.1-1D7336?style=for-the-badge" alt="Minecraft 1.20.1">
   <img src="https://img.shields.io/badge/Loader-Fabric-4F5B66?style=for-the-badge" alt="Fabric">
-  <img src="https://img.shields.io/badge/Version-1.0.0-8B0000?style=for-the-badge" alt="Version 1.0.0">
-  <img src="https://img.shields.io/badge/Java-17-E76F00?style=for-the-badge" alt="Java 17">
 </p>
 
 <a name="articles"></a>
