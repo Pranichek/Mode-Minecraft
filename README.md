@@ -1470,7 +1470,7 @@ This project became a leap from a basic understanding of programming to developm
 
 Один з цікавих висновків, який ми зробили, полягає в тому, що через неправильно написаний код або міксіни є ризик перевантажити пам'ять сервера або викликати краш гри в іншого користувача без його відома. Це викликає питання безпеки коду, і ми з'ясували, наскільки важливо правильно налаштовувати з'єднання та тригери, щоб не допустити помилок в ігровому процесі.
 
-У підсумку ми опублікували мод на CurseForge і Planet Minecraft, і на момент написання README його завантажили **47 разів** із [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) та **21 раз** із [Planet Minecraft](https://www.planetminecraft.com/mod/crimson-moon-7049895/). Для нас це перший досвід публікації власного продукту й показник того, що наша робота цікава реальним гравцям.
+У підсумку ми опублікували мод на CurseForge і Planet Minecraft, і на момент написання README його завантажили **59 разів** із [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) та **23 раз** із [Planet Minecraft](https://www.planetminecraft.com/mod/crimson-moon-7049895/). Для нас це перший досвід публікації власного продукту й показник того, що наша робота цікава реальним гравцям.
 
 Ці знання стануть в нагоді для майбутніх проєктів, адже ми не тільки розв'язали практичні проблеми розробки, а й отримали теоретичні знання, які є основою для розуміння сучасних технологій обміну даними, математики та безпеки програмного забезпечення.
 
@@ -1493,7 +1493,7 @@ While testing the game, we ran into desynchronization problems and lag when spaw
 
 One interesting conclusion we made is that badly written code or mixins can overload the server's memory or crash another user's game without them knowing. This raises the question of code safety, and we found out how important it is to configure connections and triggers properly to avoid errors in gameplay.
 
-In the end, our mod went beyond a study project: we published it on CurseForge and Planet Minecraft, and at the time of writing this README it has been downloaded **47 times** from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) and **21 times** from [Planet Minecraft](https://www.planetminecraft.com/mod/crimson-moon-7049895/). For us it is our first experience of publishing our own product and a sign that our work is interesting to real players.
+In the end, our mod went beyond a study project: we published it on CurseForge and Planet Minecraft, and at the time of writing this README it has been downloaded **59 times** from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/crimson-moon-the-curse) and **23 times** from [Planet Minecraft](https://www.planetminecraft.com/mod/crimson-moon-7049895/). For us it is our first experience of publishing our own product and a sign that our work is interesting to real players.
 
 This knowledge will be useful for future projects, because we not only solved practical development problems but also gained the theoretical knowledge that underlies modern data exchange technologies, mathematics and software security.
 
